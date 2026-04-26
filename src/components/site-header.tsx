@@ -7,7 +7,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2" aria-label="Nukleus home">
           <Image
-            src="/brand/nukleus_particle_aligned_cropped.svg"
+            src="/brand/nukleus_mark.svg"
             alt=""
             width={40}
             height={40}
