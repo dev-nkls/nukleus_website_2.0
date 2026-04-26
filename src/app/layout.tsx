@@ -13,26 +13,28 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = "https://nukleus.ai";
+const siteTitle = "Nukleus — Tailor-made AI for business";
+const siteDescription =
+  "Tailor-made AI systems for businesses. Custom AI, shipped fast, priced on outcomes.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Nukleus",
+    default: siteTitle,
     template: "%s · Nukleus",
   },
-  // TODO: replace with final tagline once messaging is locked.
-  description: "Nukleus.",
+  description: siteDescription,
   openGraph: {
     type: "website",
     url: siteUrl,
     siteName: "Nukleus",
-    title: "Nukleus",
-    description: "Nukleus.",
+    title: siteTitle,
+    description: siteDescription,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nukleus",
-    description: "Nukleus.",
+    title: siteTitle,
+    description: siteDescription,
   },
 };
 

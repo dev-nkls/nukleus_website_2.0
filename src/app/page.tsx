@@ -15,12 +15,11 @@ export default function Home() {
             priority
             className="h-auto w-full max-w-md"
           />
-          {/* TODO: replace placeholder with real headline + subhead once messaging is locked. */}
-          <h1 className="mt-12 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Coming soon.
+          <h1 className="mt-12 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+            Tailor-made AI systems, built around your business.
           </h1>
           <p className="mt-4 max-w-xl text-lg text-foreground/70">
-            We&rsquo;re building something new. Check back shortly.
+            Custom AI, shipped fast, priced on outcomes.
           </p>
         </div>
       </main>

@@ -17,6 +17,8 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 | Domain | nukleus.ai (GoDaddy) | — | DNS to be pointed at Amplify |
 | Design source | Claude Design (claude.ai) | 2026-04-26 | Tokens pasted into `globals.css` once exported |
 | Repo history | Fresh — prior content discarded via force-push | 2026-04-26 | Old project was abandoned |
+| Tagline | H1: *Tailor-made AI systems, built around your business.* / sub: *Custom AI, shipped fast, priced on outcomes.* | 2026-04-26 | Layered: clarity-first headline, opinion-first sub-head |
+| Brand palette (placeholder) | Red `#a01818` / hot `#d40d0d` / deep `#5c0000` / surface `#f8f8fc` | 2026-04-26 | Sampled from logo gradients; replaced when Claude Design tokens land |
 
 ## Status
 
@@ -24,7 +26,7 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 - [x] Add Amplify build spec
 - [x] Document stack in `CLAUDE.md` + this plan
 - [x] Drop logo into `public/brand/` and wire into header + favicon
-- [ ] Provide tagline + brand color (placeholders currently in `layout.tsx` / `page.tsx`)
+- [x] Lock tagline + provisional brand palette (placeholders in `globals.css` until Claude Design tokens land)
 - [ ] Generate design system in Claude Design
 - [ ] Paste tokens into `src/app/globals.css`
 - [ ] Decide site map (home + about + contact at minimum)

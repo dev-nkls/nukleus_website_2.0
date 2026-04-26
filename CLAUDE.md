@@ -4,6 +4,13 @@
 
 Marketing site for Nukleus. Greenfield rebuild started 2026-04-26 — the prior repo content was abandoned and history was force-pushed to a clean slate.
 
+**Positioning:** Nukleus designs tailor-made AI systems for businesses to solve problems and scale. Core promise: quality, speed, value-based pricing. Audience: businesses (not developers, not consumers). Tone: confident, bold, technical-but-approachable for business buyers.
+
+**Tagline (locked 2026-04-26):**
+- Headline (h1): *Tailor-made AI systems, built around your business.*
+- Sub-head: *Custom AI, shipped fast, priced on outcomes.*
+- Page title: *Nukleus — Tailor-made AI for business*
+
 ## Stack
 
 - **Framework:** Next.js (App Router, TypeScript) — scaffolded with `create-next-app` (Turbopack enabled)
@@ -41,7 +48,7 @@ amplify.yml    # Amplify Hosting build spec
 - Mark + wordmark lockup: `public/brand/nukleus_logo_2026.png`
 - Mark-only (particle), source SVG: `public/brand/nukleus_particle_aligned.svg`
 - Favicon: `src/app/icon.svg` (Next auto-detects this filename — no `<link>` tag needed). Regenerate from the source SVG if the mark changes; viewBox is cropped (`100 20 400 400`) and the off-white background rect + wordmark are stripped.
-- Brand red (placeholder until Claude Design tokens land): `#cc1010` mid / `#d40d0d` hot — pulled from the SVG gradients.
+- Brand tokens are wired as CSS vars in `src/app/globals.css` (mapped via `@theme inline` so `bg-brand`, `text-brand`, `bg-brand-hot`, `bg-brand-deep`, `bg-surface` work as Tailwind utilities). Light-mode hex placeholders sampled from the logo: brand `#a01818`, brand-hot `#d40d0d`, brand-deep `#5c0000`, surface `#f8f8fc`. Dark mode lifts brand to `#c42626` / `#ee3636` and flips surface to `#0e0e18`. **These are placeholders** — replace wholesale when Claude Design tokens land.
 
 ## Local dev
 
