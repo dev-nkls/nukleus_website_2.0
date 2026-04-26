@@ -23,12 +23,17 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 - [x] Scaffold Next.js + Tailwind + shadcn
 - [x] Add Amplify build spec
 - [x] Document stack in `CLAUDE.md` + this plan
-- [ ] Drop logo into `public/brand/`
+- [x] Drop logo into `public/brand/` and wire into header + favicon
+- [ ] Provide tagline + brand color (placeholders currently in `layout.tsx` / `page.tsx`)
 - [ ] Generate design system in Claude Design
 - [ ] Paste tokens into `src/app/globals.css`
-- [ ] Build out marketing pages (home, product, about, contact — TBD)
+- [ ] Decide site map (home + about + contact at minimum)
+- [ ] Build out marketing pages per site map
+- [ ] Decide on contact form backend (Amplify / Resend / other)
+- [ ] Decide on analytics (Plausible / PostHog / none)
 - [ ] Connect Amplify Hosting to GitHub `main`
-- [ ] Point GoDaddy DNS at Amplify (A/CNAME records per Amplify console)
+- [ ] Add `nukleus.ai` + `www.nukleus.ai` custom domain in Amplify Console
+- [ ] Point GoDaddy DNS at Amplify (records per Amplify console)
 - [ ] Verify SSL + custom domain in Amplify
 
 ## Open questions
