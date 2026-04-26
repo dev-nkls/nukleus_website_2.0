@@ -36,8 +36,9 @@ src/
   lib/                # utils
 public/
   brand/
-    nukleus_logo_2026.png         # full lockup (mark + wordmark) — used in hero
-    nukleus_particle_aligned.svg  # particle mark only — used in header
+    nukleus_logo_2026.png                  # full lockup (mark + wordmark) — used in hero
+    nukleus_particle_aligned.svg           # original mark variant (kept; not currently referenced)
+    nukleus_particle_aligned_cropped.svg   # current header + favicon source (mark + wordmark + red underline)
 docs/
   PLAN.md      # high-level plan & decisions for collaborators
 amplify.yml    # Amplify Hosting build spec
@@ -45,9 +46,10 @@ amplify.yml    # Amplify Hosting build spec
 
 ### Brand assets
 
-- Mark + wordmark lockup: `public/brand/nukleus_logo_2026.png`
-- Mark-only (particle), source SVG: `public/brand/nukleus_particle_aligned.svg`
-- Favicon: `src/app/icon.svg` (Next auto-detects this filename — no `<link>` tag needed). Regenerate from the source SVG if the mark changes; viewBox is cropped (`100 20 400 400`) and the off-white background rect + wordmark are stripped.
+- Mark + wordmark lockup (PNG): `public/brand/nukleus_logo_2026.png` — used full-size in the home hero
+- Header + favicon source (SVG): `public/brand/nukleus_particle_aligned_cropped.svg` — full lockup at canvas size 680×510 (mark + wordmark + red underline). Rendered small (36×36) in the header next to a separate "NUKLEUS" text label.
+- Original mark SVG (kept for reference): `public/brand/nukleus_particle_aligned.svg` — same composition without the red underline.
+- Favicon: `src/app/icon.svg` (Next auto-detects this filename — no `<link>` tag needed). Derived from the cropped SVG with the bg rect, wordmark text, and red underline stripped, and a square viewBox `100 20 400 400` to focus on the mark. Regenerate when the source SVG changes.
 - Brand tokens are wired as CSS vars in `src/app/globals.css` (mapped via `@theme inline` so `bg-brand`, `text-brand`, `bg-brand-hot`, `bg-brand-deep`, `bg-surface` work as Tailwind utilities). Light-mode hex placeholders sampled from the logo: brand `#a01818`, brand-hot `#d40d0d`, brand-deep `#5c0000`, surface `#f8f8fc`. Dark mode lifts brand to `#c42626` / `#ee3636` and flips surface to `#0e0e18`. **These are placeholders** — replace wholesale when Claude Design tokens land.
 
 ## Local dev
