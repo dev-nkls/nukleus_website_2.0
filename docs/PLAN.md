@@ -14,6 +14,7 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 | Styling | Tailwind CSS v4 | 2026-04-26 | Configured via `src/app/globals.css` |
 | Components | shadcn/ui (neutral) | 2026-04-26 | lucide icons |
 | Hosting | AWS Amplify Hosting | 2026-04-26 | `amplify.yml` at repo root |
+| Amplify app + region | App ID `dozwvccrxzlf2` in us-east-2 (Ohio), AWS account `Nukleus` (009160072854) | 2026-04-27 | Default URL `https://main.dozwvccrxzlf2.amplifyapp.com` until custom domain cuts over |
 | Domain | nukleus.ai (GoDaddy) | — | DNS to be pointed at Amplify |
 | Design source | Claude Design (claude.ai) | 2026-04-26 | Tokens pasted into `globals.css` once exported |
 | Repo history | Fresh — prior content discarded via force-push | 2026-04-26 | Old project was abandoned |

@@ -18,6 +18,10 @@ Marketing site for Nukleus. Greenfield rebuild started 2026-04-26 — the prior 
 - **Components:** shadcn/ui (`src/components/ui/`, neutral base color, lucide icons). Add components with `npx shadcn@latest add <name>`.
 - **Path alias:** `@/*` → `src/*`
 - **Hosting:** AWS Amplify Hosting, auto-deploy from `main` (see `amplify.yml`)
+  - **AWS account:** Nukleus (009160072854)
+  - **Region:** us-east-2 (Ohio)
+  - **Amplify app name / ID:** `nukleus_website_2.0` / `dozwvccrxzlf2`
+  - **Default deploy URL:** https://main.dozwvccrxzlf2.amplifyapp.com (live until DNS cuts over to nukleus.ai)
 - **Domain:** nukleus.ai (registered at GoDaddy; DNS will point at Amplify)
 - **Design system:** Tokens come from Claude Design (claude.ai). Paste exports into `src/app/globals.css` under the existing `:root` / `.dark` blocks.
 
