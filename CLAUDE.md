@@ -26,24 +26,34 @@ Marketing site for Nukleus. Greenfield rebuild started 2026-04-26 — the prior 
 ```
 src/
   app/
-    icon.svg          # auto-served by Next as the favicon (cropped mark)
-    layout.tsx        # root metadata (title template, OG/Twitter)
-    page.tsx          # home — placeholder hero, logo + "Coming soon"
-    globals.css       # Tailwind v4 + shadcn CSS vars
+    icon.svg                  # auto-served by Next as the favicon (mark-only crop)
+    layout.tsx                # root metadata + chrome (SiteHeader / SiteFooter wrap all pages)
+    globals.css               # Tailwind v4 + shadcn CSS vars + brand-* tokens
+    page.tsx                  # home — full lockup hero
+    services/page.tsx         # /services — placeholder
+    approach/page.tsx         # /approach — placeholder
+    about/page.tsx            # /about — placeholder
+    contact/page.tsx          # /contact — placeholder
   components/
-    site-header.tsx   # logo mark + "NUKLEUS" wordmark
-    ui/               # shadcn primitives (do not hand-edit)
-  lib/                # utils
+    site-header.tsx           # mark + "NUKLEUS" wordmark + nav
+    site-footer.tsx           # mark + nav + © line
+    page-placeholder.tsx      # shared placeholder body for inner routes
+    ui/                       # shadcn primitives (do not hand-edit)
+  lib/                        # utils
 public/
   brand/
     nukleus_logo_2026.png                  # full lockup (mark + wordmark) — used in hero
-    nukleus_mark.svg                       # mark-only, tight square viewBox — used in header & as icon source
+    nukleus_mark.svg                       # mark-only, tight square viewBox — used in header/footer & as icon source
     nukleus_particle_aligned.svg           # original full-canvas variant (kept for reference)
     nukleus_particle_aligned_cropped.svg   # full-canvas variant with red underline (kept for reference)
 docs/
   PLAN.md      # high-level plan & decisions for collaborators
 amplify.yml    # Amplify Hosting build spec
 ```
+
+### Site map
+
+`/`, `/services`, `/approach`, `/about`, `/contact`. The four inner routes use `<PagePlaceholder>` until real content lands. `SiteHeader` and `SiteFooter` are mounted in `app/layout.tsx` so every page gets the chrome automatically — pages should render only their unique section content (no wrapping `<main>`; the layout provides one).
 
 ### Brand assets
 

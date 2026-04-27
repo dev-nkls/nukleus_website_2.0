@@ -1,32 +1,33 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const navLinks = [
+const footerLinks = [
   { href: "/services", label: "Services" },
   { href: "/approach", label: "Approach" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
-export function SiteHeader() {
+export function SiteFooter() {
+  const year = new Date().getFullYear();
+
   return (
-    <header className="border-b border-black/5 bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+    <footer className="mt-auto border-t border-black/5">
+      <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
         <Link href="/" className="flex items-center gap-2" aria-label="Nukleus home">
           <Image
             src="/brand/nukleus_mark.svg"
             alt=""
-            width={40}
-            height={40}
-            priority
-            className="h-9 w-9"
+            width={28}
+            height={28}
+            className="h-7 w-7"
           />
-          <span className="text-sm font-medium tracking-[0.3em] uppercase">
+          <span className="text-xs font-medium tracking-[0.3em] uppercase">
             Nukleus
           </span>
         </Link>
-        <nav className="hidden items-center gap-8 text-sm text-foreground/70 sm:flex">
-          {navLinks.map((link) => (
+        <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-foreground/60">
+          {footerLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -36,7 +37,10 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
+        <p className="text-xs text-foreground/50">
+          © {year} Nukleus. All rights reserved.
+        </p>
       </div>
-    </header>
+    </footer>
   );
 }

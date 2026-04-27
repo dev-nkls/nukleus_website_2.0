@@ -19,6 +19,7 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 | Repo history | Fresh — prior content discarded via force-push | 2026-04-26 | Old project was abandoned |
 | Tagline | H1: *Tailor-made AI systems, built around your business.* / sub: *Custom AI, shipped fast, priced on outcomes.* | 2026-04-26 | Layered: clarity-first headline, opinion-first sub-head |
 | Brand palette (placeholder) | Red `#a01818` / hot `#d40d0d` / deep `#5c0000` / surface `#f8f8fc` | 2026-04-26 | Sampled from logo gradients; replaced when Claude Design tokens land |
+| Site map | `/`, `/services`, `/approach`, `/about`, `/contact` | 2026-04-26 | Five-page B2B marketing structure; placeholder content until real copy lands |
 
 ## Status
 
@@ -27,10 +28,10 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 - [x] Document stack in `CLAUDE.md` + this plan
 - [x] Drop logo into `public/brand/` and wire into header + favicon
 - [x] Lock tagline + provisional brand palette (placeholders in `globals.css` until Claude Design tokens land)
+- [x] Lock site map and scaffold routes + nav + footer (placeholders in inner routes)
 - [ ] Generate design system in Claude Design
 - [ ] Paste tokens into `src/app/globals.css`
-- [ ] Decide site map (home + about + contact at minimum)
-- [ ] Build out marketing pages per site map
+- [ ] Replace placeholder content on each route with real copy
 - [ ] Decide on contact form backend (Amplify / Resend / other)
 - [ ] Decide on analytics (Plausible / PostHog / none)
 - [ ] Connect Amplify Hosting to GitHub `main`
