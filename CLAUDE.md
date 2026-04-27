@@ -2,7 +2,9 @@
 
 # Nukleus Website (nukleus.ai)
 
-Marketing site for Nukleus. Greenfield rebuild started 2026-04-26 — the prior repo content was abandoned and history was force-pushed to a clean slate.
+Marketing site for Nukleus. **Live at https://www.nukleus.ai** (auto-deploy from `main` via AWS Amplify; apex `nukleus.ai` 301-forwards to www).
+
+Greenfield rebuild started 2026-04-26 — the prior repo content was abandoned and history was force-pushed to a clean slate.
 
 **Positioning:** Nukleus designs tailor-made AI systems for businesses to solve problems and scale. Core promise: quality, speed, value-based pricing. Audience: businesses (not developers, not consumers). Tone: confident, bold, technical-but-approachable for business buyers.
 
@@ -51,8 +53,6 @@ public/
   brand/
     nukleus_logo_2026.png                  # full lockup (mark + wordmark) — used in hero
     nukleus_mark.svg                       # mark-only, tight square viewBox — used in header/footer & as icon source
-    nukleus_particle_aligned.svg           # original full-canvas variant (kept for reference)
-    nukleus_particle_aligned_cropped.svg   # full-canvas variant with red underline (kept for reference)
 docs/
   PLAN.md      # high-level plan & decisions for collaborators
 amplify.yml    # Amplify Hosting build spec
@@ -65,9 +65,8 @@ amplify.yml    # Amplify Hosting build spec
 ### Brand assets
 
 - Mark + wordmark lockup (PNG): `public/brand/nukleus_logo_2026.png` — used full-size in the home hero
-- Header mark (SVG): `public/brand/nukleus_mark.svg` — true mark-only crop (square viewBox `100 20 400 400`, bg rect / wordmark / underline stripped). Rendered small (36×36) in the header next to a separate "NUKLEUS" text label.
-- Reference variants (not currently referenced from code, kept as source-of-truth assets): `public/brand/nukleus_particle_aligned.svg` (original full canvas) and `nukleus_particle_aligned_cropped.svg` (same canvas + red underline).
-- Favicon: `src/app/icon.svg` (Next auto-detects this filename — no `<link>` tag needed). Identical content to `public/brand/nukleus_mark.svg`. Regenerate both files together with the same `sed` recipe when the source SVG changes.
+- Header/footer mark (SVG): `public/brand/nukleus_mark.svg` — mark-only crop (square viewBox `100 20 400 400`, no bg rect / wordmark / underline). Rendered ~36×36 in the header (next to a "NUKLEUS" text label) and ~28×28 in the footer.
+- Favicon: `src/app/icon.svg` (Next auto-detects this filename — no `<link>` tag needed). Identical content to `public/brand/nukleus_mark.svg`. Regenerate both together if the mark changes.
 - Brand tokens are wired as CSS vars in `src/app/globals.css` (mapped via `@theme inline` so `bg-brand`, `text-brand`, `bg-brand-hot`, `bg-brand-deep`, `bg-surface` work as Tailwind utilities). Light-mode hex placeholders sampled from the logo: brand `#a01818`, brand-hot `#d40d0d`, brand-deep `#5c0000`, surface `#f8f8fc`. Dark mode lifts brand to `#c42626` / `#ee3636` and flips surface to `#0e0e18`. **These are placeholders** — replace wholesale when Claude Design tokens land.
 
 ## Local dev

@@ -2,6 +2,8 @@
 
 Living document for the rebuild of nukleus.ai. Update as decisions land.
 
+**Status:** Live at https://www.nukleus.ai (verified 2026-04-27).
+
 ## Goal
 
 A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Claude Code; visual design system sourced from Claude Design.
@@ -15,7 +17,7 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 | Components | shadcn/ui (neutral) | 2026-04-26 | lucide icons |
 | Hosting | AWS Amplify Hosting | 2026-04-26 | `amplify.yml` at repo root |
 | Amplify app + region | App ID `dozwvccrxzlf2` in us-east-2 (Ohio), AWS account `Nukleus` (009160072854) | 2026-04-27 | Default URL `https://main.dozwvccrxzlf2.amplifyapp.com` until custom domain cuts over |
-| Domain | nukleus.ai (GoDaddy) | — | DNS to be pointed at Amplify |
+| Domain | nukleus.ai (GoDaddy) | 2026-04-27 | DNS managed at GoDaddy (not Route 53). Email: Microsoft 365 via GoDaddy, untouched |
 | Design source | Claude Design (claude.ai) | 2026-04-26 | Tokens pasted into `globals.css` once exported |
 | Repo history | Fresh — prior content discarded via force-push | 2026-04-26 | Old project was abandoned |
 | Tagline | H1: *Tailor-made AI systems, built around your business.* / sub: *Custom AI, shipped fast, priced on outcomes.* | 2026-04-26 | Layered: clarity-first headline, opinion-first sub-head |
@@ -40,23 +42,32 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 - [x] Connect Amplify Hosting to GitHub `main` (us-east-2 / Ohio)
 - [x] Add `nukleus.ai` + `www.nukleus.ai` custom domain in Amplify Console
 - [x] Point GoDaddy DNS at Amplify (SSL validation CNAME + www CNAME + apex forwarding)
-- [ ] Wait for Amplify SSL validation + domain activation (5–30 min from save)
-- [ ] Verify `https://www.nukleus.ai` loads with valid SSL and apex forwards correctly
+- [x] Wait for Amplify SSL validation + domain activation
+- [x] Verify `https://www.nukleus.ai` loads with valid SSL and apex 301-forwards (verified 2026-04-27)
 
 ## Open questions
 
-- **Site map.** What pages do we need at launch? (home + about + contact at minimum?)
-- **Content.** Source of marketing copy — write fresh, or adapt from elsewhere?
+- **Content.** Source of marketing copy for `/services`, `/approach`, `/about`, `/contact` — write fresh, or adapt from elsewhere?
 - **CMS.** Static MDX in-repo, or headless CMS (Sanity, Contentful)? Start static; revisit if non-devs need to edit.
-- **Forms.** Contact/lead capture — Amplify backend? Resend + a serverless route? TBD.
-- **Analytics.** Vercel Analytics is out (we're on Amplify). Plausible or PostHog?
+- **Forms.** Contact/lead capture — Amplify backend? Resend + a serverless route? Calendar booking (Cal.com)? TBD.
+- **Analytics.** Plausible / PostHog / GA4 / none?
+- **Email SPF.** Current SPF on `nukleus.ai` is `v=spf1 include:secureserver.net -all` — unusual for Microsoft 365 (standard would `include:spf.protection.outlook.com`). Working as-is, but worth auditing if email deliverability issues come up. Out of scope for the website rebuild.
 
-## Deployment notes
+## Deployment
 
-The Amplify build spec runs `npm ci && npm run build` and serves `.next`. For the custom domain:
-1. In Amplify Console → Hosting → Custom domains → add `nukleus.ai` and `www.nukleus.ai`.
-2. Amplify provides DNS records. In GoDaddy DNS, add the CNAME(s) Amplify specifies (and the apex ANAME/ALIAS if Amplify supports it on this domain — otherwise use the provided A records).
-3. Wait for SSL provisioning.
+Live at **https://www.nukleus.ai**. Auto-deploy on every push to `main` via AWS Amplify Hosting (build spec: `amplify.yml`).
+
+**DNS layout (at GoDaddy):**
+- Apex `nukleus.ai` → 301-forwards to `https://www.nukleus.ai` via GoDaddy domain forwarding (HTTPS auto-provisioned). DNS A records still point to GoDaddy's HTTPS forwarding service IPs.
+- `www.nukleus.ai` → CNAME → `d3h2d8y1d1585p.cloudfront.net` (Amplify-managed CloudFront).
+- SSL validation CNAME `_76879b64ce8bd83e2f586564776d1ed0` → `_3abc260c858b9f31ed5afb1cd96c5a5f.jkddzztszm.acm-validations.aws` (used by AWS ACM to renew the cert; do not delete).
+
+**Email DNS records (Microsoft 365 via GoDaddy) — untouched:**
+- MX `@` → `nukleus-ai.mail.protection.outlook.com` (priority 0)
+- TXT `@` → `NETORGFT12495029.onmicrosoft.com` (M365 domain verification)
+- TXT `@` → `v=spf1 include:secureserver.net -all` (SPF)
+- CNAMEs: `autodiscover`, `email`, `lyncdiscover`, `msoid`, `sip`, `_domainconnect`, `pay`
+- SRVs: `_sip._tls`, `_sipfederationtls._tcp`
 
 ## Memory
 
