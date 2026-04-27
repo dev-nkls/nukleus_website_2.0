@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = "https://nukleus.ai";
+const siteUrl = "https://www.nukleus.ai";
 const siteTitle = "Nukleus — Tailor-made AI for business";
 const siteDescription =
   "Tailor-made AI systems for businesses. Custom AI, shipped fast, priced on outcomes.";

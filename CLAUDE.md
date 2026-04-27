@@ -22,7 +22,10 @@ Marketing site for Nukleus. Greenfield rebuild started 2026-04-26 — the prior 
   - **Region:** us-east-2 (Ohio)
   - **Amplify app name / ID:** `nukleus_website_2.0` / `dozwvccrxzlf2`
   - **Default deploy URL:** https://main.dozwvccrxzlf2.amplifyapp.com (live until DNS cuts over to nukleus.ai)
-- **Domain:** nukleus.ai (registered at GoDaddy; DNS will point at Amplify)
+- **Domain:** nukleus.ai (registered at GoDaddy; DNS managed at GoDaddy, not Route 53)
+  - **Canonical URL:** `https://www.nukleus.ai` (www is canonical because GoDaddy DNS doesn't support ANAME/ALIAS at apex). `https://nukleus.ai` 301-redirects to `https://www.nukleus.ai` via GoDaddy's domain forwarding (HTTPS auto-provisioned by GoDaddy).
+  - **DNS records added at GoDaddy for the website:** one CNAME `_76879b64...` → `…acm-validations.aws` (SSL validation), and the existing `www` CNAME edited to point at `d3h2d8y1d1585p.cloudfront.net` (the Amplify-issued CloudFront target).
+  - **Records left untouched:** all Microsoft 365 email records (MX → `nukleus-ai.mail.protection.outlook.com`, autodiscover/msoid/lyncdiscover/sip CNAMEs, SRV records, TXT verification + SPF), apex A records, NS/SOA, GoDaddy `_domainconnect`/`pay`/`email` CNAMEs.
 - **Design system:** Tokens come from Claude Design (claude.ai). Paste exports into `src/app/globals.css` under the existing `:root` / `.dark` blocks.
 
 ## Layout

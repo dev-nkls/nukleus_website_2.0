@@ -21,6 +21,8 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 | Tagline | H1: *Tailor-made AI systems, built around your business.* / sub: *Custom AI, shipped fast, priced on outcomes.* | 2026-04-26 | Layered: clarity-first headline, opinion-first sub-head |
 | Brand palette (placeholder) | Red `#a01818` / hot `#d40d0d` / deep `#5c0000` / surface `#f8f8fc` | 2026-04-26 | Sampled from logo gradients; replaced when Claude Design tokens land |
 | Site map | `/`, `/services`, `/approach`, `/about`, `/contact` | 2026-04-26 | Five-page B2B marketing structure; placeholder content until real copy lands |
+| Canonical URL | `https://www.nukleus.ai` (www); apex `nukleus.ai` 301-forwards to www | 2026-04-27 | Forced by GoDaddy DNS limitation — no ANAME/ALIAS at apex. Apex forwarding is HTTPS via GoDaddy. |
+| DNS strategy | Stay on GoDaddy DNS; don't move to Route 53 | 2026-04-27 | Preserves Microsoft 365 email for 4 partners (MX, TXT/SPF, autodiscover etc. all stay) — cutover risk wasn't worth the cleanup |
 
 ## Status
 
@@ -35,10 +37,11 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 - [ ] Replace placeholder content on each route with real copy
 - [ ] Decide on contact form backend (Amplify / Resend / other)
 - [ ] Decide on analytics (Plausible / PostHog / none)
-- [ ] Connect Amplify Hosting to GitHub `main`
-- [ ] Add `nukleus.ai` + `www.nukleus.ai` custom domain in Amplify Console
-- [ ] Point GoDaddy DNS at Amplify (records per Amplify console)
-- [ ] Verify SSL + custom domain in Amplify
+- [x] Connect Amplify Hosting to GitHub `main` (us-east-2 / Ohio)
+- [x] Add `nukleus.ai` + `www.nukleus.ai` custom domain in Amplify Console
+- [x] Point GoDaddy DNS at Amplify (SSL validation CNAME + www CNAME + apex forwarding)
+- [ ] Wait for Amplify SSL validation + domain activation (5–30 min from save)
+- [ ] Verify `https://www.nukleus.ai` loads with valid SSL and apex forwards correctly
 
 ## Open questions
 
