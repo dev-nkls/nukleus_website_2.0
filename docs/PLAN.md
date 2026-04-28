@@ -2,7 +2,7 @@
 
 Living document for the rebuild of nukleus.ai. Update as decisions land.
 
-**Status:** Live at https://www.nukleus.ai (verified 2026-04-27).
+**Status:** Live at https://www.nukleus.ai (verified 2026-04-27). Real design system landed locally 2026-04-28 — pending push.
 
 ## Goal
 
@@ -25,6 +25,9 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 | Site map | `/`, `/services`, `/approach`, `/about`, `/contact` | 2026-04-26 | Five-page B2B marketing structure; placeholder content until real copy lands |
 | Canonical URL | `https://www.nukleus.ai` (www); apex `nukleus.ai` 301-forwards to www | 2026-04-27 | Forced by GoDaddy DNS limitation — no ANAME/ALIAS at apex. Apex forwarding is HTTPS via GoDaddy. |
 | DNS strategy | Stay on GoDaddy DNS; don't move to Route 53 | 2026-04-27 | Preserves Microsoft 365 email for 4 partners (MX, TXT/SPF, autodiscover etc. all stay) — cutover risk wasn't worth the cleanup |
+| Heading font | Fraunces (variable serif, opsz axis, italic) | 2026-04-28 | Approved during Claude Design iteration; loaded via `next/font/google` — no licensed cut needed |
+| Visual direction | "Bold" variant from Claude Design | 2026-04-28 | Selected after A/B against a restrained variant. Cinematic hero video (light only), dark manifesto band, industries marquee, hover-reveal services list, flip pillars, timeline. Includes a light↔dark-red theme toggle in the header. |
+| Hero video | `public/brand/hero_bg.mp4` (3MB greyscale particle field) | 2026-04-28 | Heavy filter: `grayscale(1) brightness(1.55) contrast(0.78)` + white veil. Hidden in dark-red mode and under `prefers-reduced-motion`. |
 
 ## Status
 
@@ -34,10 +37,11 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 - [x] Drop logo into `public/brand/` and wire into header + favicon
 - [x] Lock tagline + provisional brand palette (placeholders in `globals.css` until Claude Design tokens land)
 - [x] Lock site map and scaffold routes + nav + footer (placeholders in inner routes)
-- [ ] Generate design system in Claude Design
-- [ ] Paste tokens into `src/app/globals.css`
-- [ ] Replace placeholder content on each route with real copy
-- [ ] Decide on contact form backend (Amplify / Resend / other)
+- [x] Generate design system in Claude Design (handoff received 2026-04-28)
+- [x] Paste tokens into `src/app/globals.css` (full token system + bold-variant component CSS)
+- [x] Replace placeholder content on each route with real copy (six services, three pillars, five-phase engagement, four-paragraph about, contact form)
+- [ ] Push the design-system implementation to `main` (Amplify auto-deploys)
+- [ ] Wire contact form backend (currently a no-op submit + toast — see "Open questions")
 - [ ] Decide on analytics (Plausible / PostHog / none)
 - [x] Connect Amplify Hosting to GitHub `main` (us-east-2 / Ohio)
 - [x] Add `nukleus.ai` + `www.nukleus.ai` custom domain in Amplify Console
@@ -49,7 +53,7 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 
 - **Content.** Source of marketing copy for `/services`, `/approach`, `/about`, `/contact` — write fresh, or adapt from elsewhere?
 - **CMS.** Static MDX in-repo, or headless CMS (Sanity, Contentful)? Start static; revisit if non-devs need to edit.
-- **Forms.** Contact/lead capture — Amplify backend? Resend + a serverless route? Calendar booking (Cal.com)? TBD.
+- **Forms.** Contact/lead capture currently no-ops on submit and shows a toast. Pick a real path: Amplify backend? Resend + a serverless route? Calendar booking (Cal.com)? TBD.
 - **Analytics.** Plausible / PostHog / GA4 / none?
 - **Email SPF.** Current SPF on `nukleus.ai` is `v=spf1 include:secureserver.net -all` — unusual for Microsoft 365 (standard would `include:spf.protection.outlook.com`). Working as-is, but worth auditing if email deliverability issues come up. Out of scope for the website rebuild.
 
