@@ -477,6 +477,97 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
 .hero.bold .mark-col { position: relative; }
 .hero.bold .mark-col img { position: relative; z-index: 1; }
 
+/* ---- Animated brand mark on the home hero ----
+   The whole mark gently bobs and parallax-tilts toward the cursor; the
+   electron orbits the nucleus counter-clockwise on a tilted plane along
+   the existing dotted ring; the trail dots pulse in sequence around the
+   ring; the nucleus carries a soft glow; clicking the mark fires an
+   expanding ring pulse. Hover smoothly accelerates the orbit.
+   Inline SVG (HeroMark) is required because :hover can't reach into <img>. */
+@property --orbit-duration {
+  syntax: "<time>";
+  inherits: true;
+  initial-value: 12s;
+}
+
+.hero-mark {
+  position: relative;
+  z-index: 1;
+  perspective: 1000px;
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 320ms ease-out;
+  cursor: pointer;
+}
+.mark-bob {
+  animation: mark-bob 5.5s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.mark-nucleus {
+  animation: mark-nucleus-pulse 4s ease-in-out infinite alternate;
+  will-change: filter;
+}
+/* Orbit: tilted plane (rotateX 20deg) + counter-clockwise spin around (340,225). */
+.mark-orbit {
+  transform-box: view-box;
+  transform-origin: 340px 225px;
+  animation: mark-orbit var(--orbit-duration, 12s) linear infinite;
+  transition: --orbit-duration 400ms ease-out, filter 300ms ease-out;
+  filter: drop-shadow(0 0 0 rgba(212, 13, 13, 0));
+  will-change: transform, filter;
+}
+/* Trail dots: subtle scale pulse staggered around the ring via --i. */
+.mark-trail circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mark-trail-pulse 2.4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -0.1s);
+  will-change: transform;
+}
+/* Click pulse: expanding ring centered on the nucleus. */
+.mark-pulse {
+  transform-box: view-box;
+  transform-origin: 340px 225px;
+  animation: mark-pulse-expand 800ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes mark-bob {
+  from { transform: translateY(-6px); }
+  to   { transform: translateY(6px); }
+}
+@keyframes mark-orbit {
+  from { transform: rotateX(20deg) rotate(0deg); }
+  to   { transform: rotateX(20deg) rotate(-360deg); }
+}
+@keyframes mark-nucleus-pulse {
+  from { filter: drop-shadow(0 0 14px rgba(212, 13, 13, 0.20)); }
+  to   { filter: drop-shadow(0 0 28px rgba(212, 13, 13, 0.50)); }
+}
+@keyframes mark-trail-pulse {
+  0%, 70%, 100% { transform: scale(1); }
+  35%           { transform: scale(1.55); }
+}
+@keyframes mark-pulse-expand {
+  0%   { r: 60;  opacity: 0.65; stroke-width: 3; }
+  100% { r: 240; opacity: 0;    stroke-width: 0.5; }
+}
+
+.hero.bold .mark-col:hover .mark-orbit {
+  --orbit-duration: 1.2s;
+  filter: drop-shadow(0 0 12px rgba(212, 13, 13, 0.55));
+}
+.hero.bold .mark-col:hover .mark-bob { animation-duration: 3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mark-bob,
+  .mark-orbit,
+  .mark-nucleus,
+  .mark-trail circle,
+  .mark-pulse { animation: none; }
+  .hero-mark   { transform: none; transition: none; }
+  .mark-orbit  { transition: none; filter: none; transform: rotateX(20deg); }
+}
+
 /* Scroll cue */
 .scroll-cue {
   position: absolute;

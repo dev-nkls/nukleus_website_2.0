@@ -48,6 +48,7 @@ src/
     site-header.tsx           # mark + "NUKLEUS" wordmark (19.5px) + nav + ThemeToggle (server)
     site-footer.tsx           # mark + nav + © line (no year)
     hero-video.tsx            # client — video + mesh + veil layers; sets .is-ready when video loads
+    hero-mark.tsx             # client — inlined animated brand mark (orbit + bob + parallax + click pulse)
     scroll-cue.tsx            # client — animated scroll chevron, fades on scroll
     theme-toggle.tsx          # client — toggles html[data-theme="dark-red"] (light ⇄ red-tinted dark)
     contact-form.tsx          # client — form + toast (no backend yet — TBD)
@@ -73,7 +74,7 @@ amplify.yml    # Amplify Hosting build spec
 
 - **Full lockup PNG:** `public/brand/nukleus_logo_2026.png` — kept for collateral; not currently used on the site.
 - **Header / footer mark:** `public/brand/nukleus_mark.svg` — original mark with the baked-in atmospheric halo. Rendered ~36×36 in the header and ~24×24 in the footer.
-- **Home hero mark:** `public/brand/nukleus_mark_clean.svg` — same mark with the soft white-ish atmospheric ellipse stripped, so it sits directly on the video without a visible boundary.
+- **Home hero mark:** rendered by `<HeroMark />` ([src/components/hero-mark.tsx](src/components/hero-mark.tsx)), which inlines the same paths as `nukleus_mark_clean.svg` plus animation hooks (`.mark-bob`, `.mark-orbit`, `.mark-trail`, `.mark-nucleus`, `.mark-pulse`). The `.svg` file itself is no longer referenced by the home page but is kept on disk as the "source of truth" for the static mark — keep the two in sync if the mark ever changes.
 - **Padded mark variant:** `public/brand/nukleus_mark_padded.svg` — wider viewBox so the outer particles aren't clipped. Kept for future hero treatments.
 - **Hero video:** `public/brand/hero_bg.mp4` — 3MB cinematic particle field. Greyscale-filtered + brightened via CSS; visible in light mode only (hidden in `data-theme="dark-red"` and disabled under `prefers-reduced-motion`).
 - **Favicon:** `src/app/icon.svg` (Next auto-detects). Mirrors `nukleus_mark.svg` — regenerate both together if the mark changes.
@@ -102,6 +103,7 @@ The bold variant brought a lot of opinionated CSS that pages reach into directly
 - `.timeline` + `.timeline-step` — vertical timeline with red connector; description appears as a red callout on hover.
 - `.about-prose` — single-column prose with red Fraunces drop cap on `p.first`.
 - `.scroll-cue` — bottom-of-hero chevron that fades out on scroll.
+- `.hero-mark` (+ `.mark-bob`, `.mark-orbit`, `.mark-trail`, `.mark-nucleus`, `.mark-pulse`) — animated home-hero mark. Counter-clockwise electron orbit on a tilted plane, gently bobbing whole assembly, staggered trail-dot pulse, soft nucleus glow, cursor parallax (±6°), click-triggered expanding ring. `:hover` smoothly accelerates the orbit via `@property --orbit-duration`. Everything stops under `prefers-reduced-motion`.
 
 ## Local dev
 

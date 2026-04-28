@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { HeroMark } from "@/components/hero-mark";
 import { HeroVideo } from "@/components/hero-video";
 import { ScrollCue } from "@/components/scroll-cue";
 
@@ -67,13 +67,7 @@ export default function Home() {
               </div>
             </div>
             <div className="mark-col">
-              <Image
-                src="/brand/nukleus_mark_clean.svg"
-                alt="Nukleus mark"
-                width={460}
-                height={460}
-                priority
-              />
+              <HeroMark />
             </div>
           </div>
         </div>
