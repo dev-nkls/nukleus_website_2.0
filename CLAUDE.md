@@ -47,13 +47,14 @@ src/
   components/
     site-header.tsx           # mark + "NUKLEUS" wordmark (19.5px) + desktop nav + MobileMenu + ThemeToggle (server)
     site-footer.tsx           # mark + nav + © line (no year); z-index above sticky page-bg so cream bg always shows
+    header-mark.tsx           # static inline-SVG brand mark used by site-header + site-footer (lets CSS recolor trail dots in dark mode)
     hero-video.tsx            # client — home hero video + mesh + veil layers; sets .is-ready
     hero-mark.tsx             # client — animated brand mark (HTML-overlay orbit, bob, parallax, click pulse)
     page-bg.tsx               # client — video backdrop for services/approach/about/contact. Sticky on mobile (one video persists through scroll)
     scroll-cue.tsx            # client — animated scroll chevron, fades on scroll
     theme-toggle.tsx          # client — toggles html[data-theme="dark-red"] (light ⇄ red-tinted dark)
     mobile-menu.tsx           # client — hamburger trigger + full-viewport drawer for nav links + theme toggle (≤720px)
-    contact-form.tsx          # client — form + toast (no backend yet — TBD)
+    contact-form.tsx          # client — form opens user's mail client via mailto: (recipient = NEXT_PUBLIC_CONTACT_EMAIL, default hello@nukleus.ai). Stopgap until SMTP/transactional path lands.
     ui/                       # shadcn primitives (do not hand-edit)
   lib/                        # utils
 public/
@@ -75,7 +76,7 @@ amplify.yml    # Amplify Hosting build spec
 ### Brand assets
 
 - **Full lockup PNG:** `public/brand/nukleus_logo_2026.png` — kept for collateral; not currently used on the site.
-- **Header / footer mark:** `public/brand/nukleus_mark.svg` — original mark with the baked-in atmospheric halo. Rendered ~36×36 in the header and ~24×24 in the footer.
+- **Header / footer mark:** rendered by `<HeaderMark />` ([src/components/header-mark.tsx](src/components/header-mark.tsx)) — same shape as `nukleus_mark.svg` but inlined as JSX with class hooks (`.header-mark-trail`, `.header-mark-nucleus`, `.header-mark-electron`) so dark-red mode can flip the trail dots to white via CSS while the nucleus + electron stay red. Sized 54×54 in the header (was 36×36 — bumped 50% on desktop / 33% on mobile to read better in the chrome) and 24×24 in the footer. The on-disk `nukleus_mark.svg` is kept as the source of truth for the static mark — keep the two in sync if the mark ever changes.
 - **Home hero mark:** rendered by `<HeroMark />` ([src/components/hero-mark.tsx](src/components/hero-mark.tsx)), which inlines the same paths as `nukleus_mark_clean.svg` plus animation hooks (`.mark-bob`, `.mark-orbit`, `.mark-trail`, `.mark-nucleus`, `.mark-pulse`). The `.svg` file itself is no longer referenced by the home page but is kept on disk as the "source of truth" for the static mark — keep the two in sync if the mark ever changes.
 - **Padded mark variant:** `public/brand/nukleus_mark_padded.svg` — wider viewBox so the outer particles aren't clipped. Kept for future hero treatments.
 - **Hero video:** `public/brand/hero_bg.mp4` — 3MB cinematic particle field. Reused across the home hero AND every other page (via `<PageBg />`). Greyscale + brightness are applied as a CSS filter; the intent is to bake them into the encode itself for perf, but the CSS filter remains as a fallback. **One-time ffmpeg pass to bake the look into the file:**
@@ -118,6 +119,7 @@ The bold variant brought a lot of opinionated CSS that pages reach into directly
   - `.timeline` + `.timeline-step` — vertical timeline. Inside `.approach-engagement`, each step is a translucent white card. On mobile, collapsed to marker + title; tap flips the card red with white text and reveals the description.
 - `.about-prose` + `.about-prose-panel` — single-column prose with red Fraunces drop cap on `p.first`. The panel adds a tight translucent backdrop so the copy reads against the page-bg video.
 - `.lede-panel` — tight translucent inline-block panel applied to lede paragraphs on services and approach so they read clearly against the video without any visible card edge.
+- `.contact-grid` — desktop layout for the contact page: `1fr 1fr` columns with `align-items: stretch`, so the intro card and the form `.panel` come out the same width AND height. The intro card uses `flex-direction: column; justify-content: center` to keep its copy vertically centered as it stretches. `.contact-page .panel` overrides the global panel `max-width: 720px` so the form fills its column. Mobile (≤880px) collapses to a single column.
 
 ### Mobile (≤720px)
 
@@ -130,7 +132,7 @@ A single consolidated `@media (max-width: 720px)` block at the bottom of `global
 - **Tightened type rhythm**: hero `min-height: 100vh` so the next section never bleeds; mark capped at 240px; clamp-shrunk h1/h2; lede + section padding tightened; full-width CTAs.
 - **Horizontal overflow**: `html, body { overflow-x: clip; max-width: 100% }` (clip, not hidden — `overflow: hidden` on an ancestor breaks descendant `position: sticky`).
 - `.scroll-cue` — bottom-of-hero chevron that fades out on scroll.
-- `.hero-mark` (+ `.mark-bob`, `.mark-orbit`, `.mark-electron`, `.mark-trail`, `.mark-nucleus`, `.mark-pulse`) — animated home-hero mark. **Architecture (perf rebuild 2026-05-01):** static layers (nucleus + 25 trail dots) live in inline SVG; the orbiting electron and click-pulse rings are HTML overlays so their transforms run on the compositor instead of forcing per-frame SVG re-rasterization. The trail group is squashed by `scaleY(0.9397)` to match the cos(20°) projection of the tilted electron orbit. The mark uses `container-type: inline-size` so the electron + pulse scale fluidly via `cqw` units. Counter-clockwise orbit (start angle -120°), gently bobbing whole assembly, staggered trail-dot pulse, soft nucleus glow, cursor parallax (±6°), click-triggered expanding ring. `:hover` smoothly accelerates the orbit via `@property --orbit-duration`. Everything stops under `prefers-reduced-motion`.
+- `.hero-mark` (+ `.mark-bob`, `.mark-orbit`, `.mark-electron`, `.mark-trail`, `.mark-nucleus`, `.mark-pulse`) — animated home-hero mark. **Architecture (perf rebuild 2026-05-01):** static layers (nucleus + 25 trail dots) live in inline SVG; the orbiting electron and click-pulse rings are HTML overlays so their transforms run on the compositor instead of forcing per-frame SVG re-rasterization. The trail group is squashed by `scaleY(0.9397)` to match the cos(20°) projection of the tilted electron orbit. The mark uses `container-type: inline-size` so the electron + pulse scale fluidly via `cqw` units. Counter-clockwise orbit (start angle -120°), gently bobbing whole assembly, staggered trail-dot pulse, soft nucleus glow, cursor parallax (±6°), click-triggered expanding ring. **Orbit rotation is JS-driven** (requestAnimationFrame in `HeroMark`) — hover lerps speed between 30°/s (12s/cycle) and 300°/s (1.2s/cycle) without snapping the angle, fixing the position-jump caused by changing `animation-duration` on a CSS keyframe. Everything stops under `prefers-reduced-motion`.
 
 ## Local dev
 
@@ -140,6 +142,10 @@ npm run build
 npm run start
 npm run lint
 ```
+
+## Env vars
+
+- `NEXT_PUBLIC_CONTACT_EMAIL` — recipient for the contact form's mailto handoff. Defaults to `hello@nukleus.ai` (Microsoft 365 mailbox on the domain). Set this in Amplify Console → App settings → Environment variables if the canonical inbox changes. Public (NEXT_PUBLIC_…) because the value is inlined into the client bundle as a `mailto:` href.
 
 ## Conventions
 

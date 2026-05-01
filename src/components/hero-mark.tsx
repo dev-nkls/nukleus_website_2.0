@@ -26,9 +26,15 @@
 // Mouse-move sets --tilt-x / --tilt-y on the wrapper for a subtle 3D parallax.
 // Click fires a one-shot expanding ring (.mark-pulse).
 //
+// Orbit rotation is driven by requestAnimationFrame (not a CSS animation) so
+// that hover-driven speed changes integrate continuously from the current
+// angle. A CSS `animation-duration` swap re-maps elapsed-time to a new
+// percentage of the cycle, which made the electron jump to a different
+// position on hover-out.
+//
 // Keep this in sync with the source SVG if the brand mark changes.
 
-import { CSSProperties, MouseEvent, useRef, useState } from "react";
+import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
 
 type TrailDot = { cx: number; cy: number; r: number; opacity: number };
 
@@ -64,9 +70,54 @@ const TRAIL_DOTS: TrailDot[] = [
 // Max parallax tilt in degrees in any direction.
 const TILT_MAX_DEG = 6;
 
+// Orbit speeds — degrees per second. Counter-clockwise so the rendered
+// rotation decreases over time (matches the prior keyframe -120° → -480°).
+const BASE_SPEED_DPS = 360 / 12; // 12s per cycle = 30 deg/s
+const HOVER_SPEED_DPS = 360 / 1.2; // 1.2s per cycle = 300 deg/s
+// Time constant for the speed lerp. Smaller = snappier handoff.
+const SPEED_TAU_S = 0.25;
+
 export function HeroMark() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const orbitRef = useRef<HTMLDivElement | null>(null);
   const [pulses, setPulses] = useState<number[]>([]);
+
+  // Drive the orbit rotation in JS so speed changes don't snap the angle.
+  useEffect(() => {
+    const orbit = orbitRef.current;
+    if (!orbit) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reduceMotion.matches) {
+      orbit.style.transform = "rotateX(20deg) rotate(-120deg)";
+      return;
+    }
+
+    let angle = -120; // matches prior @keyframes start
+    let speed = BASE_SPEED_DPS;
+    let lastT: number | null = null;
+    let raf = 0;
+
+    const step = (t: number) => {
+      if (lastT == null) lastT = t;
+      const dt = Math.min((t - lastT) / 1000, 0.1);
+      lastT = t;
+
+      const target =
+        wrapperRef.current?.matches(":hover") ? HOVER_SPEED_DPS : BASE_SPEED_DPS;
+      const alpha = 1 - Math.exp(-dt / SPEED_TAU_S);
+      speed += (target - speed) * alpha;
+
+      angle -= speed * dt;
+      // Keep the angle bounded so it doesn't grow unboundedly over time.
+      if (angle < -3600) angle += 360;
+
+      orbit.style.transform = `rotateX(20deg) rotate(${angle.toFixed(3)}deg)`;
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
     const wrap = wrapperRef.current;
@@ -147,7 +198,7 @@ export function HeroMark() {
       {/* HTML overlay: bob > orbit > electron. Pulses get appended into
           .mark-bob at click time so they bob along with the mark. */}
       <div className="mark-bob">
-        <div className="mark-orbit">
+        <div ref={orbitRef} className="mark-orbit">
           <div className="mark-electron">
             <svg viewBox="-26 -26 52 52" aria-hidden="true">
               <defs>

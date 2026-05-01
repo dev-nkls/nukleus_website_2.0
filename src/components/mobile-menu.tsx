@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 type Props = {
   links: { href: string; label: string }[];
@@ -47,9 +46,6 @@ export function MobileMenu({ links }: Props) {
               {link.label}
             </Link>
           ))}
-          <div className="mobile-menu-toggle">
-            <ThemeToggle />
-          </div>
         </nav>
       </div>
     </>

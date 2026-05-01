@@ -28,6 +28,9 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 | Heading font | Fraunces (variable serif, opsz axis, italic) | 2026-04-28 | Approved during Claude Design iteration; loaded via `next/font/google` — no licensed cut needed |
 | Visual direction | "Bold" variant from Claude Design | 2026-04-28 | Selected after A/B against a restrained variant. Cinematic hero video (light only), dark manifesto band, industries marquee, hover-reveal services list, flip pillars, timeline. Includes a light↔dark-red theme toggle in the header. |
 | Hero video | `public/brand/hero_bg.mp4` (3MB greyscale particle field) | 2026-04-28 | Heavy filter: `grayscale(1) brightness(1.55) contrast(0.78)` + white veil. Hidden in dark-red mode and under `prefers-reduced-motion`. |
+| Hero-mark orbit drive | JS (requestAnimationFrame), not CSS keyframes | 2026-05-01 | A CSS `animation-duration` swap on hover re-mapped elapsed-time and snapped the electron to a different angle on hover-out. JS-integrated rotation lerps speed between 30°/s and 300°/s while preserving the current angle. |
+| Contact form delivery | `mailto:` handoff (stopgap) | 2026-05-01 | Recipient `NEXT_PUBLIC_CONTACT_EMAIL` (default `hello@nukleus.ai`). No backend / signup needed; form opens user's email client with subject + body prefilled. Replace with Resend or SES + Server Action when an account exists. |
+| Header / footer mark rendering | Inline SVG via `<HeaderMark />` (replaces `<Image>`) | 2026-05-01 | Lets CSS recolor `.header-mark-trail circle` to white in `[data-theme="dark-red"]` so the dark-mode lockup reads as red nucleus + red electron + white orbit (matches favicon). Header mark scaled up: 54×54 desktop / 37×37 mobile (was 36 / 28). |
 
 ## Status
 
@@ -42,8 +45,13 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 - [x] Replace placeholder content on each route with real copy (six services, three pillars, five-phase engagement, four-paragraph about, contact form)
 - [x] Push the design-system implementation to `main` (Amplify auto-deploys)
 - [x] Mobile polish pass (2026-05-01): hamburger menu, sticky single-host page-bg video, tap-to-flip pillar + timeline cards, hero fits 100vh, eyebrow accent across center-hero pages, horizontal-scroll fix
+- [x] Hero-mark orbit fix (2026-05-01): JS-driven rotation so hover speed-up no longer snaps the electron position on hover-out
+- [x] Contact page desktop layout (2026-05-01): 1fr 1fr stretch grid so intro card and form panel match in width AND height
+- [x] Wire contact form via mailto (2026-05-01): submit opens user's email client prefilled with all fields. Stopgap until SMTP / transactional service lands.
+- [x] Header / footer mark dark-mode + scale-up (2026-05-01): `<HeaderMark />` inlines the SVG so dark-red mode shows red nucleus + electron + white orbit; header lockup grew 50% on desktop / 33% on mobile.
+- [x] Contact page mobile overflow (2026-05-01): grid columns now use `minmax(0, 1fr)`, inputs forced to `width: 100%; min-width: 0` so two-column field-rows fit narrow phones; field-rows collapse to 1-col below 420px.
 - [ ] Dark-mode polish pass (next): audit `html[data-theme="dark-red"]` on every page + new component (panels, mobile menu, tap-to-flip cards) on desktop AND mobile
-- [ ] Wire contact form backend (currently a no-op submit + toast — see "Open questions")
+- [ ] Contact form backend upgrade: replace `mailto:` with Resend / SES + Server Action (env: `RESEND_API_KEY` etc.) so submission works without leaving the page
 - [ ] Decide on analytics (Plausible / PostHog / none)
 - [x] Connect Amplify Hosting to GitHub `main` (us-east-2 / Ohio)
 - [x] Add `nukleus.ai` + `www.nukleus.ai` custom domain in Amplify Console

@@ -10,21 +10,18 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="page-bg-host">
+    <div className="page-bg-host contact-page">
       <PageBg />
 
-      <section className="center-hero">
-        <div className="container">
-          <span className="eyebrow">Contact</span>
-          <h1>Start the conversation.</h1>
-          <p className="lede">
-            Share the business problem you&apos;re working through. We respond to every inquiry within two business days, and where the fit is clear, we&apos;ll arrange a 30-minute consultation to scope the work in detail.
-          </p>
-        </div>
-      </section>
-
-      <section style={{ paddingTop: 24 }}>
-        <div className="container">
+      <section className="contact-section">
+        <div className="container contact-grid">
+          <div className="contact-intro">
+            <span className="eyebrow">Contact</span>
+            <h1>Start the conversation.</h1>
+            <p className="lede">
+              Share the business problem you&apos;re working through. We reply within two business days.
+            </p>
+          </div>
           <ContactForm />
         </div>
       </section>

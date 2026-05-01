@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { HeaderMark } from "@/components/header-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileMenu } from "@/components/mobile-menu";
 
@@ -15,13 +15,7 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="container row">
         <Link href="/" className="lockup" aria-label="Nukleus home">
-          <Image
-            src="/brand/nukleus_mark.svg"
-            alt=""
-            width={36}
-            height={36}
-            priority
-          />
+          <HeaderMark size={54} />
           <span className="name">Nukleus</span>
         </Link>
         <nav className="nav nav-desktop">
@@ -30,9 +24,11 @@ export function SiteHeader() {
               {link.label}
             </Link>
           ))}
-          <ThemeToggle />
         </nav>
-        <MobileMenu links={navLinks} />
+        <div className="header-actions">
+          <ThemeToggle />
+          <MobileMenu links={navLinks} />
+        </div>
       </div>
     </header>
   );

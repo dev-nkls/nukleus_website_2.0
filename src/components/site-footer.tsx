@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { HeaderMark } from "@/components/header-mark";
 
 const footerLinks = [
   { href: "/services", label: "Services" },
@@ -13,7 +13,7 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="container row">
         <Link href="/" className="lockup" aria-label="Nukleus home">
-          <Image src="/brand/nukleus_mark.svg" alt="" width={24} height={24} />
+          <HeaderMark size={24} />
           <span className="name">Nukleus</span>
         </Link>
         <nav className="nav">

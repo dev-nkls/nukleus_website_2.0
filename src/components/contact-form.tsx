@@ -1,6 +1,45 @@
 "use client";
 
+// Contact form — opens the user's mail client with a prefilled message.
+// This is a stopgap so the form is actually usable today; once an SMTP /
+// transactional-email path is set up (Resend, SES, etc.) swap the submit
+// handler for a fetch to that endpoint and keep the toast UX.
+
 import { FormEvent, useRef, useState } from "react";
+
+const CONTACT_EMAIL =
+  process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "hello@nukleus.ai";
+
+function buildMailto(form: HTMLFormElement) {
+  const data = new FormData(form);
+  const name = String(data.get("name") ?? "").trim();
+  const email = String(data.get("email") ?? "").trim();
+  const company = String(data.get("company") ?? "").trim();
+  const role = String(data.get("role") ?? "").trim();
+  const problem = String(data.get("problem") ?? "").trim();
+  const timeline = String(data.get("timeline") ?? "").trim();
+
+  const subject = `Nukleus inquiry — ${name || "new contact"}${
+    company ? ` (${company})` : ""
+  }`;
+
+  const lines = [
+    `Name: ${name}`,
+    `Email: ${email}`,
+    company && `Company: ${company}`,
+    role && `Role: ${role}`,
+    timeline && `Timeline: ${timeline}`,
+    "",
+    "Problem:",
+    problem,
+  ].filter(Boolean) as string[];
+
+  const body = lines.join("\n");
+  const params = new URLSearchParams({ subject, body });
+  // URLSearchParams encodes spaces as `+`; mailto bodies expect `%20`.
+  const query = params.toString().replace(/\+/g, "%20");
+  return `mailto:${CONTACT_EMAIL}?${query}`;
+}
 
 export function ContactForm() {
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -8,9 +47,14 @@ export function ContactForm() {
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = formRef.current;
+    if (!form) return;
+
+    const href = buildMailto(form);
+    window.location.href = href;
+
     setShowToast(true);
-    formRef.current?.reset();
-    window.setTimeout(() => setShowToast(false), 3200);
+    window.setTimeout(() => setShowToast(false), 4000);
   }
 
   return (
@@ -61,8 +105,8 @@ export function ContactForm() {
           </button>
         </div>
       </form>
-      <div className={`toast${showToast ? " show" : ""}`}>
-        Thanks, we&apos;ll be in touch within two business days.
+      <div className={`toast${showToast ? " show" : ""}`} role="status" aria-live="polite">
+        Opening your email client — hit send to deliver the message.
       </div>
     </>
   );

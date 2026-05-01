@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HeroMark } from "@/components/hero-mark";
-import { HeroVideo } from "@/components/hero-video";
+import { PageBg } from "@/components/page-bg";
 import { ScrollCue } from "@/components/scroll-cue";
 
 const industries = [
@@ -44,10 +44,10 @@ const services = [
 
 export default function Home() {
   return (
-    <>
+    <div className="home-bg-host page-bg-host">
+      <PageBg />
       {/* Hero */}
       <section className="hero bold">
-        <HeroVideo />
         <div className="container">
           <div className="grid">
             <div>
@@ -146,6 +146,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

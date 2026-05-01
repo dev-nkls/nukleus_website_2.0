@@ -235,21 +235,29 @@
 
 /* Bold-variant red-tinted dark mode (toggle in header). */
 html[data-theme="dark-red"] {
-  --bg:            #1a0606;
-  --bg-elevated:   #260909;
-  --bg-sunken:     #100303;
-  --fg:            #fdf2f2;
-  --fg-muted:      #e9b8b8;
-  --fg-subtle:     #b88080;
-  --fg-faint:      #8a5050;
-  --border:        rgba(255, 200, 200, 0.10);
-  --border-strong: rgba(255, 200, 200, 0.20);
-  --accent:        #ee3636;
-  --accent-hot:    #ff5a5a;
+  /* Charcoal-on-black palette. Header + footer use --bg-chrome (true
+     black); page surfaces use --bg (charcoal); elevated panels use
+     --bg-elevated (lighter charcoal). Accent stays brand red so the
+     italic word marks pop. */
+  --bg:            #16171a;
+  --bg-elevated:   #1f2125;
+  --bg-sunken:     #0d0e10;
+  --bg-chrome:     #000000;
+  --fg:            #ffffff;
+  --fg-muted:      rgba(255, 255, 255, 0.72);
+  --fg-subtle:     rgba(255, 255, 255, 0.52);
+  --fg-faint:      rgba(255, 255, 255, 0.36);
+  --border:        rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  /* Ferrari Rosso Corsa-style crimson — deeper and more saturated
+     than the daylight brand red so it reads "blood red" against
+     pure black, not "tomato." */
+  --accent:        #c8102e;
+  --accent-hot:    #e0162d;
   --accent-deep:   #5c0000;
 
-  --background:    #1a0606;
-  --foreground:    #fdf2f2;
+  --background:    #16171a;
+  --foreground:    #ffffff;
 }
 html[data-theme="dark-red"] body { background: var(--bg); color: var(--fg); }
 
@@ -310,10 +318,17 @@ html[data-theme="dark-red"] body { background: var(--bg); color: var(--fg); }
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
-html[data-theme="dark-red"] .site-header { background: var(--bg); border-bottom-color: var(--border); }
+html[data-theme="dark-red"] .site-header { background: var(--bg-chrome); border-bottom-color: var(--border); }
+html[data-theme="dark-red"] .site-footer { background: var(--bg-chrome); border-top-color: var(--border); }
 .site-header .row { height: 64px; display: flex; align-items: center; justify-content: space-between; }
 .lockup { display: flex; align-items: center; gap: 10px; }
-.lockup img { width: 36px; height: 36px; }
+.lockup img,
+.lockup .header-mark { width: 54px; height: 54px; display: block; }
+
+/* Dark-red theme: trail dots flip to white so the mark reads as
+   red nucleus + red electron + white orbit (matches the favicon look
+   against the dark-red header). Nucleus + electron stay red. */
+html[data-theme="dark-red"] .header-mark-trail circle { fill: #ffffff; }
 .lockup .name {
   font-size: 19.5px;
   font-weight: 500;
@@ -325,6 +340,8 @@ html[data-theme="dark-red"] .site-header { background: var(--bg); border-bottom-
 .nav a:hover, .nav a.active { color: var(--fg); }
 .nav a.active { position: relative; }
 .nav a.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -22px; height: 1px; background: var(--accent); }
+
+.header-actions { display: flex; align-items: center; gap: 8px; }
 
 /* Mobile menu — hidden above 720px, replaces .nav-desktop below it. */
 .mobile-menu-trigger {
@@ -369,12 +386,14 @@ html[data-theme="dark-red"] .site-header { background: var(--bg); border-bottom-
   .mobile-menu-trigger { display: flex; }
   .mobile-menu-drawer { display: block; }
   .lockup .name { font-size: 16px; letter-spacing: 0.25em; }
-  .lockup img { width: 28px; height: 28px; }
+  .lockup img,
+  .lockup .header-mark { width: 37px; height: 37px; }
 }
 
 .site-footer { position: relative; z-index: 10; border-top: 1px solid var(--border); padding: 40px 0; background: var(--bg); }
 .site-footer .row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-.site-footer .lockup img { width: 24px; height: 24px; }
+.site-footer .lockup img,
+.site-footer .lockup .header-mark { width: 24px; height: 24px; }
 .site-footer .lockup .name { font-size: 11px; }
 .site-footer .nav { font-size: 13px; color: var(--fg-faint); }
 .site-footer .copy { font-size: 12px; color: var(--fg-faint); }
@@ -524,9 +543,25 @@ section + section { border-top: 1px solid var(--border); }
     linear-gradient(90deg,  rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.10) 50%, rgba(255, 255, 255, 0.20) 100%);
   z-index: 1;
 }
-html[data-theme="dark-red"] .hero-video,
-html[data-theme="dark-red"] .hero-mesh,
-html[data-theme="dark-red"] .hero-veil { display: none; }
+/* Dark theme — same hero motion, inverted wash. The video keeps its
+   greyscale grade but at low brightness, the mesh/veil layers shift
+   from cream to maroon so the cinematic backdrop reads on dark. */
+html[data-theme="dark-red"] .hero-video {
+  filter: grayscale(1) brightness(0.6) contrast(1.25) saturate(0.9);
+}
+html[data-theme="dark-red"] .hero-video.is-ready { opacity: 0.8; }
+html[data-theme="dark-red"] .hero-mesh {
+  background:
+    radial-gradient(ellipse 60% 50% at 18% 28%, rgba(238, 54, 54, 0.16), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 82% 72%, rgba(255, 90, 90, 0.10), transparent 65%),
+    radial-gradient(ellipse 70% 45% at 50% 95%, rgba(0, 0, 0, 0.55), transparent 70%),
+    radial-gradient(ellipse 80% 60% at 60% 10%, rgba(0, 0, 0, 0.45), transparent 70%);
+}
+html[data-theme="dark-red"] .hero-veil {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0.30) 60%, rgba(0, 0, 0, 0.42) 100%),
+    linear-gradient(90deg,  rgba(20, 21, 24, 0.10) 0%, rgba(0, 0, 0, 0.0) 50%, rgba(20, 21, 24, 0.10) 100%);
+}
 @media (prefers-reduced-motion: reduce) {
   .hero-mesh { animation: none; }
   .hero-video { display: none; }
@@ -566,12 +601,6 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
    horizontal. The trail dots are painted as a flat circle in SVG. To
    keep the two paths coincident, we squash the SVG trail group by the
    same cos(20°) around the nucleus — see .mark-trail rule below. */
-@property --orbit-duration {
-  syntax: "<time>";
-  inherits: true;
-  initial-value: 12s;
-}
-
 .hero-mark {
   position: relative;
   z-index: 1;
@@ -605,12 +634,13 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
   will-change: transform;
   transform-origin: 50% 51.04%;
 }
-/* Orbit applies the tilt + spin around the nucleus pivot. */
+/* Orbit applies the tilt + spin around the nucleus pivot. The rotation
+   itself is driven by JS in HeroMark (requestAnimationFrame) so hover
+   speed changes integrate continuously from the current angle instead
+   of snapping when animation-duration changes. */
 .mark-orbit {
-  animation: mark-orbit var(--orbit-duration, 12s) linear infinite;
-  transition: --orbit-duration 400ms ease-out;
   will-change: transform;
-  transform: rotateX(20deg);
+  transform: rotateX(20deg) rotate(-120deg);
   transform-origin: 50% 51.04%;
 }
 
@@ -671,6 +701,9 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
   animation-delay: calc(var(--i, 0) * -0.1s);
   will-change: transform;
 }
+/* Dark theme — lift the trail dots to a light gray so they read
+   against the black backdrop without going pure white. */
+html[data-theme="dark-red"] .mark-trail circle { fill: #d6d6da; }
 /* Nucleus glow stays in SVG. */
 .mark-nucleus {
   animation: mark-nucleus-pulse 4s ease-in-out infinite alternate;
@@ -680,12 +713,6 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
 @keyframes mark-bob {
   from { transform: translateY(-6px); }
   to   { transform: translateY(6px); }
-}
-/* Orbit starts at -120° so the electron lands at the same upper-left
-   position the original SVG drew it at, and runs counter-clockwise. */
-@keyframes mark-orbit {
-  from { transform: rotateX(20deg) rotate(-120deg); }
-  to   { transform: rotateX(20deg) rotate(-480deg); }
 }
 @keyframes mark-nucleus-pulse {
   from { filter: drop-shadow(0 0 14px rgba(212, 13, 13, 0.20)); }
@@ -700,9 +727,6 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
   100% { transform: translate(-50%, -50%) scale(1.05); opacity: 0;    border-width: 0.5px; }
 }
 
-.hero.bold .mark-col:hover .mark-orbit {
-  --orbit-duration: 1.2s;
-}
 .hero.bold .mark-col:hover .mark-electron {
   filter: drop-shadow(0 0 12px rgba(212, 13, 13, 0.55));
 }
@@ -710,12 +734,10 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .mark-bob,
-  .mark-orbit,
   .mark-nucleus,
   .mark-trail circle,
   .mark-pulse { animation: none; }
   .hero-mark    { transform: none; transition: none; }
-  .mark-orbit   { transition: none; transform: rotateX(20deg); }
   .mark-electron { filter: none; transition: none; }
 }
 
@@ -861,8 +883,21 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
   overflow: hidden;
 }
 @media (max-width: 880px) { .services-grid { grid-template-columns: 1fr; } }
-.service { background: var(--bg); padding: 32px; transition: background var(--duration-base) var(--ease-standard); cursor: pointer; }
-.service:hover { background: var(--bg-elevated); }
+.service {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(12px) saturate(1.05);
+  -webkit-backdrop-filter: blur(12px) saturate(1.05);
+  padding: 32px;
+  transition: background var(--duration-base) var(--ease-standard);
+  cursor: pointer;
+}
+.service:hover { background: rgba(255, 255, 255, 0.78); }
+html[data-theme="dark-red"] .service {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px) saturate(1.05);
+  -webkit-backdrop-filter: blur(12px) saturate(1.05);
+}
+html[data-theme="dark-red"] .service:hover { background: rgba(0, 0, 0, 0.72); }
 .service .num { font-family: var(--font-mono); font-size: 12px; color: var(--accent); margin-bottom: 24px; }
 .service h3 { font-family: var(--font-heading); font-size: 24px; font-weight: 600; line-height: 1.15; letter-spacing: -0.015em; color: var(--fg); }
 .service p { margin-top: 12px; font-size: 14px; line-height: 1.6; color: var(--fg-muted); }
@@ -1017,8 +1052,13 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
 .page-bg-host > section,
 .page-bg-host > .container { position: relative; z-index: 1; }
 .page-bg {
-  position: absolute; inset: 0; z-index: 0;
-  pointer-events: none; overflow: hidden;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  margin-bottom: calc(-100vh + 64px);
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
 .page-bg video {
   position: absolute; inset: 0;
@@ -1043,7 +1083,20 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
       rgba(245, 240, 235, 0.40) 35%,
       rgba(245, 240, 235, 0.465) 100%);
 }
-html[data-theme="dark-red"] .page-bg { display: none; }
+/* Dark theme page-bg — same video, dark filter + maroon veil. */
+html[data-theme="dark-red"] .page-bg video {
+  filter: grayscale(1) brightness(0.6) contrast(1.25) saturate(0.9);
+}
+html[data-theme="dark-red"] .page-bg video.is-ready { opacity: 0.8; }
+html[data-theme="dark-red"] .page-bg::before {
+  background:
+    radial-gradient(ellipse 70% 50% at 18% 14%, rgba(238, 54, 54, 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 60% at 88% 82%, rgba(238, 54, 54, 0.06), transparent 60%),
+    linear-gradient(180deg,
+      rgba(0, 0, 0, 0.22) 0%,
+      rgba(0, 0, 0, 0.30) 35%,
+      rgba(0, 0, 0, 0.42) 100%);
+}
 
 /* ============================================================
    Center-aligned hero (services / about / contact)
@@ -1619,8 +1672,11 @@ html[data-theme="dark-red"] .approach-engagement .timeline-marker { background: 
   box-shadow: 0 8px 32px -16px rgba(20, 8, 8, 0.18);
 }
 html[data-theme="dark-red"] .panel {
-  background: rgba(38, 9, 9, 0.60);
-  border-color: rgba(255, 200, 200, 0.18);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 8px 32px -16px rgba(0, 0, 0, 0.55);
 }
 @media (max-width: 720px) { .panel { padding: 28px; border-radius: 14px; } }
 .field { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
@@ -1641,6 +1697,91 @@ html[data-theme="dark-red"] .panel {
 @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
 .form-actions { margin-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .form-meta { font-size: 13px; color: var(--fg-faint); }
+
+/* ============================================================
+   Contact page — two-column intro + form sized to fit 100vh
+   on both desktop and mobile so users never need to scroll.
+   ============================================================ */
+.contact-page .contact-section {
+  min-height: calc(100vh - 64px - 80px);
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+}
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: stretch;
+}
+.contact-intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 20px;
+  padding: 28px 32px;
+  box-shadow: 0 8px 32px -16px rgba(20, 8, 8, 0.16);
+}
+.contact-page .panel {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+}
+html[data-theme="dark-red"] .contact-intro {
+  background: rgba(0, 0, 0, 0.55);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 8px 32px -16px rgba(0, 0, 0, 0.6);
+}
+.contact-intro h1 { margin-top: 12px; font-size: clamp(40px, 4.4vw, 60px); }
+.contact-intro .lede { margin-top: 14px; max-width: 420px; font-size: 17px; line-height: 1.5; }
+.contact-page .panel { padding: 18px 22px; }
+.contact-page .field { margin-top: 10px; gap: 4px; }
+.contact-page .field input,
+.contact-page .field select { height: 34px; }
+.contact-page .field textarea { min-height: 60px; padding: 8px 12px; }
+.contact-page .field-row { gap: 12px; }
+.contact-page .form-actions { margin-top: 12px; }
+/* Form controls must shrink with their grid cells — without min-width: 0
+   their default intrinsic width (~size=20) blows narrow phone columns
+   past the viewport. width: 100% + box-sizing keeps them inside the cell. */
+.contact-page .field input,
+.contact-page .field select,
+.contact-page .field textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+@media (max-width: 880px) {
+  .contact-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .contact-page .contact-section { min-height: 0; padding: 4px 0 8px; }
+  .contact-intro { padding: 12px 16px; }
+  .contact-intro .eyebrow { margin-bottom: 4px; }
+  .contact-intro h1 { font-size: clamp(24px, 6.5vw, 32px); margin-top: 4px; line-height: 1.05; }
+  .contact-intro .lede { font-size: 13px; max-width: none; margin-top: 6px; }
+  .contact-page .panel { padding: 12px 14px; border-radius: 12px; }
+  .contact-page .field { margin-top: 8px; gap: 3px; }
+  .contact-page .field label { font-size: 11px; }
+  .contact-page .field input,
+  .contact-page .field select { height: 34px; font-size: 14px; }
+  .contact-page .field textarea { min-height: 48px; font-size: 14px; }
+  /* Keep field-rows 2-col on mobile so the form stays compact, but use
+     minmax(0, 1fr) so columns can actually shrink below input min-content. */
+  .contact-page .field-row {
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .contact-page .form-actions { margin-top: 10px; }
+  .contact-page .form-meta { font-size: 12px; }
+}
+/* Truly narrow phones: collapse field-rows to 1-col so labels + inputs
+   have room to breathe even when the viewport is ≤380px. */
+@media (max-width: 420px) {
+  .contact-page .field-row { grid-template-columns: minmax(0, 1fr); }
+}
 
 /* Toast for form submission */
 .toast {
@@ -1745,20 +1886,8 @@ html[data-theme="dark-red"] .panel {
   /* Sections — slightly tighter overall. */
   section { padding: 48px 0; }
 
-  /* Page-bg video — sticky on mobile so the video stays anchored in
-     the viewport while content scrolls over it (no vertical stretch
-     across long pages, and the backdrop persists past the hero).
-     Negative margin reclaims the flow space so content sections layer
-     on top instead of starting below. Sticky stays scoped to the host,
-     so multi-host pages (e.g. /approach) hand off cleanly between
-     instances. */
-  .page-bg {
-    position: sticky;
-    inset: auto;
-    top: 64px;
-    height: calc(100vh - 64px);
-    margin-bottom: calc(-100vh + 64px);
-  }
+  /* Sticky page-bg behaviour is now the base rule for all viewports;
+     no mobile-specific override needed. */
 
   /* Services rows — body copy reads black against the page-bg veil. */
   .service-row p { color: var(--fg); }
