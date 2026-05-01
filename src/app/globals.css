@@ -306,12 +306,10 @@ html[data-theme="dark-red"] body { background: var(--bg); color: var(--fg); }
 
 .site-header {
   position: sticky; top: 0; z-index: 50;
-  background: rgba(248, 248, 252, 0.82);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
-html[data-theme="dark-red"] .site-header { background: rgba(26, 6, 6, 0.78); border-bottom-color: var(--border); }
+html[data-theme="dark-red"] .site-header { background: var(--bg); border-bottom-color: var(--border); }
 .site-header .row { height: 64px; display: flex; align-items: center; justify-content: space-between; }
 .lockup { display: flex; align-items: center; gap: 10px; }
 .lockup img { width: 36px; height: 36px; }
@@ -848,6 +846,26 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
   -webkit-text-stroke-color: color-mix(in oklab, var(--accent) 70%, transparent);
 }
 .services-grid.bold .service h3 { font-size: 24px; }
+/* Hover-reveal: numerals + title at rest; description appears on hover. */
+.services-grid.bold .service p {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  overflow: hidden;
+  transition: max-height var(--duration-base) var(--ease-out),
+              opacity var(--duration-base) var(--ease-out),
+              margin-top var(--duration-base) var(--ease-out);
+}
+.services-grid.bold .service:hover p,
+.services-grid.bold .service:focus-within p {
+  max-height: 220px;
+  opacity: 1;
+  margin-top: 12px;
+}
+@media (max-width: 720px) {
+  /* Always-visible on touch */
+  .services-grid.bold .service p { max-height: 220px; opacity: 1; margin-top: 12px; }
+}
 
 /* ============================================================
    Proof / pricing band — italic blockquote with giant " backdrop
@@ -945,7 +963,12 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
    ============================================================ */
 
 .page-bg-host { position: relative; isolation: isolate; }
-.page-bg-host > section { position: relative; z-index: 1; }
+/* Hoist any direct-child content layer above .page-bg's z-index:0. Without
+   this, statically-positioned children paint *underneath* the absolutely-
+   positioned .page-bg veil (CSS painting order: positioned z=0 outranks
+   in-flow non-positioned), so dark text on the title gets washed out. */
+.page-bg-host > section,
+.page-bg-host > .container { position: relative; z-index: 1; }
 .page-bg {
   position: absolute; inset: 0; z-index: 0;
   pointer-events: none; overflow: hidden;
@@ -1116,13 +1139,14 @@ html[data-theme="dark-red"] .page-bg { display: none; }
   max-width: 620px;
   font-size: 19px;
   line-height: 1.6;
-  color: var(--fg-muted);
   text-wrap: pretty;
 }
 .approach-hero .scroll-cue {
-  margin-top: 64px;
-  position: static;
-  transform: none;
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 0;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -1146,32 +1170,43 @@ html[data-theme="dark-red"] .page-bg { display: none; }
   50%      { opacity: 1.0;  transform: scaleY(1.0); }
 }
 
-/* Section head used by the engagement section ("Four steps, one direction"). */
+/* Section head used by the engagement section ("Four steps, one direction").
+   No max-width on the wrapper so the inner lede scrim can extend full-width;
+   each child element (h2, lede) sets its own max-width. */
 .approach-section-head {
   text-align: center;
-  max-width: 720px;
   margin: 0 auto 56px;
 }
 .approach-section-head .eyebrow { display: inline-block; margin-bottom: 18px; }
 .approach-section-head h2 {
   font-family: var(--font-heading);
   font-size: clamp(40px, 4.4vw, 60px);
-  font-weight: 600;
+  font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.025em;
-  color: var(--fg);
+  color: #000;
   text-wrap: balance;
-  font-variation-settings: "opsz" 96;
-  margin: 0;
+  /* font-variation-settings overrides font-weight unless wght is set
+     explicitly — include both axes. opsz 24 sits between Fraunces'
+     "small-text-thicker-ink" (9–14) and "display-thinner" (96–144),
+     giving solid, readable weight at 60px without exaggerating widths. */
+  font-variation-settings: "wght" 800, "opsz" 24;
+  margin: 0 auto;
+  max-width: 920px;
 }
 .approach-section-head h2 .accent { color: var(--accent); font-style: italic; font-weight: 500; }
 .approach-section-head .lede {
   margin-top: 18px;
   font-size: 18px;
   line-height: 1.6;
-  color: var(--fg-muted);
   text-wrap: pretty;
 }
+/* Hero h1 + eyebrow read fine on the cream-veiled video at this scroll
+   position — no text-shadow needed (it was reading as a white outline). */
+html[data-theme="dark-red"] .approach-section-head h2,
+html[data-theme="dark-red"] .approach-section-head .eyebrow,
+html[data-theme="dark-red"] .approach-hero h1,
+html[data-theme="dark-red"] .approach-hero .eyebrow { text-shadow: none; }
 
 /* Flat (non-flip) pillar — always-visible numeral + title + body. */
 .approach-pillars {
@@ -1249,9 +1284,24 @@ html[data-theme="dark-red"] .approach-pillar:focus-visible {
   color: var(--fg-muted);
   margin: 0;
   text-wrap: pretty;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height var(--duration-base) var(--ease-out),
+              opacity var(--duration-base) var(--ease-out),
+              margin-top var(--duration-base) var(--ease-out);
+}
+.approach-pillar:hover .pillar-desc,
+.approach-pillar:focus-visible .pillar-desc,
+.approach-pillar:focus-within .pillar-desc {
+  max-height: 280px;
+  opacity: 1;
+  margin-top: 8px;
 }
 @media (max-width: 900px) {
   .approach-pillars { grid-template-columns: 1fr; }
+  /* Always-visible on touch */
+  .approach-pillar .pillar-desc { max-height: 280px; opacity: 1; margin-top: 8px; }
 }
 
 /* Manifesto-style divider band between pillars and engagement. */
@@ -1357,12 +1407,156 @@ html[data-theme="dark-red"] .approach-engagement .timeline-step {
 .approach-engagement .timeline-marker { background: #fff; }
 html[data-theme="dark-red"] .approach-engagement .timeline-marker { background: rgba(20, 8, 8, 0.85); }
 
+/* Engagement section: same visible video presence as the hero, but the
+   second-instance offset to duration/2 tends to land on a slightly
+   brighter frame, so we soften the brightness modestly. The veil
+   stays light so the video reads through. */
+.approach-engagement .page-bg video {
+  filter: grayscale(1) brightness(1.30) contrast(0.85);
+}
+.approach-engagement .page-bg video.is-ready { opacity: 0.50; }
+.approach-engagement .page-bg::before {
+  background:
+    radial-gradient(ellipse 70% 50% at 18% 14%, rgba(212, 13, 13, 0.05), transparent 60%),
+    radial-gradient(ellipse 60% 60% at 88% 82%, rgba(212, 13, 13, 0.035), transparent 60%),
+    linear-gradient(180deg,
+      rgba(245, 240, 235, 0.30) 0%,
+      rgba(245, 240, 235, 0.42) 35%,
+      rgba(245, 240, 235, 0.48) 100%);
+}
+
+/* Engagement timeline: only marker + title at rest. Hover reveals body. */
+.approach-engagement .timeline-body p {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  overflow: hidden;
+  transition: max-height var(--duration-base) var(--ease-out),
+              opacity var(--duration-base) var(--ease-out),
+              margin-top var(--duration-base) var(--ease-out);
+}
+.approach-engagement .timeline-step:hover .timeline-body p,
+.approach-engagement .timeline-step:focus-within .timeline-body p {
+  max-height: 280px;
+  opacity: 1;
+  margin-top: 8px;
+}
+@media (max-width: 720px) {
+  /* Always-visible on touch */
+  .approach-engagement .timeline-body p { max-height: 280px; opacity: 1; margin-top: 8px; }
+}
+
+/* Approach page eyebrows + scroll cue use the brand red instead of muted gray. */
+.approach-hero .eyebrow,
+.approach-section-head .eyebrow {
+  color: var(--accent);
+}
+.approach-hero .scroll-cue { color: var(--accent); }
+
+/* ============================================================
+   .text-scrim — soft cream radial backdrop that brightens the
+   reading area against the busy video, so dark body text reads
+   cleanly. The gradient is fully opaque at the center and fades
+   completely to transparent at the edges so the scrim never shows
+   a visible rectangle outline.
+   ============================================================ */
+
+.text-scrim {
+  display: block;
+  padding: 36px 64px;
+  border-radius: 0;
+  color: #000;
+  /* Frosted-glass cloud: backdrop-filter blurs + lightens the busy video
+     directly behind the panel so the area gains real visual presence even
+     when the surrounding page-bg veil is already pale. The mask-image
+     radial gradient fades the entire panel (background + backdrop-filter
+     effect together) to fully transparent at every edge — no rectangle,
+     no border, just a soft cloud. */
+  background: rgba(255, 255, 255, 0.32);
+  backdrop-filter: blur(14px) saturate(1.05) brightness(1.06);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05) brightness(1.06);
+  -webkit-mask-image: radial-gradient(
+    ellipse closest-side at center,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 50%,
+    rgba(0, 0, 0, 0.65) 76%,
+    rgba(0, 0, 0, 0.22) 92%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse closest-side at center,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 50%,
+    rgba(0, 0, 0, 0.65) 76%,
+    rgba(0, 0, 0, 0.22) 92%,
+    transparent 100%
+  );
+  text-wrap: pretty;
+}
+.text-scrim,
+.text-scrim p,
+.text-scrim h1,
+.text-scrim h2,
+.text-scrim h3,
+.text-scrim .lede {
+  color: #000;
+}
+.text-scrim .eyebrow { color: var(--accent); }
+.text-scrim .accent { color: var(--accent); font-style: italic; font-weight: 500; }
+.text-scrim p.first::first-letter { color: var(--accent); }
+
+@media (max-width: 720px) {
+  .text-scrim { padding: 24px 24px; }
+}
+
+/* Approach lede scrims: wide cloud with generous horizontal breathing
+   room so the radial fade has space to dissolve well past the text.
+   Same treatment for the hero lede AND the engagement lede so both
+   passages read identically. */
+.approach-hero .lede.text-scrim,
+.approach-section-head .lede.text-scrim {
+  max-width: 1120px;
+  padding: 56px 144px;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (max-width: 720px) {
+  .approach-hero .lede.text-scrim,
+  .approach-section-head .lede.text-scrim { padding: 28px 24px; max-width: none; }
+}
+
 /* ============================================================
    About page — prose with red drop cap
    ============================================================ */
 
 .about-prose { max-width: 720px; }
-.about-prose p { font-size: 18px; line-height: 1.7; color: var(--fg); margin-bottom: 22px; text-wrap: pretty; }
+.about-prose.text-scrim {
+  max-width: 1120px;
+  padding: 110px 240px 110px 200px;
+  margin-left: 0;
+  margin-right: auto;
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 65% at center,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 25%,
+    rgba(0, 0, 0, 0.45) 55%,
+    rgba(0, 0, 0, 0.15) 78%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 70% 65% at center,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 25%,
+    rgba(0, 0, 0, 0.45) 55%,
+    rgba(0, 0, 0, 0.15) 78%,
+    transparent 100%
+  );
+}
+@media (max-width: 720px) {
+  .about-prose.text-scrim { padding: 28px 24px; max-width: none; }
+}
+.about-prose p { font-size: 18px; line-height: 1.7; color: var(--fg); margin-bottom: 22px; text-wrap: pretty; max-width: 720px; }
+.about-prose p:last-child { margin-bottom: 0; }
 .about-prose p.first::first-letter {
   font-family: var(--font-heading);
   font-size: 56px;
@@ -1378,12 +1572,19 @@ html[data-theme="dark-red"] .approach-engagement .timeline-marker { background: 
    ============================================================ */
 
 .panel {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.60);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 20px;
   padding: 48px;
   max-width: 720px;
   margin: 0 auto;
+  box-shadow: 0 8px 32px -16px rgba(20, 8, 8, 0.18);
+}
+html[data-theme="dark-red"] .panel {
+  background: rgba(38, 9, 9, 0.60);
+  border-color: rgba(255, 200, 200, 0.18);
 }
 @media (max-width: 720px) { .panel { padding: 28px; border-radius: 14px; } }
 .field { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }

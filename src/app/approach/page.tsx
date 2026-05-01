@@ -61,7 +61,7 @@ export default function ApproachPage() {
             <h1>
               How we <span className="accent">work.</span>
             </h1>
-            <p className="lede">
+            <p className="lede text-scrim">
               Quality, speed, value-based pricing. We scope tightly, ship fast, and price against the outcomes you actually need, not the hours we spend.
             </p>
             <div className="scroll-cue">Three principles</div>
@@ -105,7 +105,7 @@ export default function ApproachPage() {
             <h2>
               Four steps, one <span className="accent">direction.</span>
             </h2>
-            <p className="lede">
+            <p className="lede text-scrim">
               No discovery sprawl, no scoping theatre, no committee architecture.
             </p>
           </div>

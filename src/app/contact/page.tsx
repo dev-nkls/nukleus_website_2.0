@@ -16,9 +16,9 @@ export default function ContactPage() {
       <section className="center-hero">
         <div className="container">
           <span className="eyebrow">Contact</span>
-          <h1>Tell us what you&apos;re trying to figure out.</h1>
+          <h1>Start the conversation.</h1>
           <p className="lede">
-            We read every note. If your problem looks like a fit, we&apos;ll set up a 30-minute call within two business days.
+            Share the business problem you&apos;re working through. We respond to every inquiry within two business days, and where the fit is clear, we&apos;ll arrange a 30-minute consultation to scope the work in detail.
           </p>
         </div>
       </section>
