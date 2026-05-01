@@ -1,12 +1,30 @@
 "use client";
 
-// Inline SVG copy of public/brand/nukleus_mark_clean.svg with animation
-// hooks: <g class="mark-bob"> floats the whole mark, <g class="mark-orbit">
-// drives the electron's tilted-plane orbit, the trail dots carry a staggered
-// pulse via --i, and click events fire a one-shot expanding ring (.mark-pulse).
+// HeroMark — animated brand mark on the home hero.
 //
-// Mouse-move over the mark sets --tilt-x / --tilt-y on the SVG so the whole
-// mark gets a subtle 3D parallax. Leaving clears them.
+// Architecture (matches ui_kits/marketing/index.html):
+//   - The static layers (nucleus + 25 trail dots) are painted in inline SVG.
+//   - The orbiting electron and click-pulse rings are HTML overlays positioned
+//     absolutely on top of the SVG. Their parents (.mark-bob, .mark-orbit) are
+//     plain divs that get GPU-composited transforms — way cheaper than animating
+//     transforms on SVG groups, which forced a CSS-pixel re-rasterization of the
+//     whole SVG each frame and was the source of orbit jank on large screens.
+//
+// Pivot math: nucleus at SVG (340, 225). With viewBox "60 -20 500 480",
+// that's (340-60)/500 = 56% across, (225-(-20))/480 = 51.04% down.
+//
+// Trail-ring radius (measured from the TRAIL_DOTS array): ~175.5 SVG units
+// = 35.1% of the 500-unit-wide viewBox, so the electron sits at 35.1cqw from
+// the nucleus pivot.
+//
+// The electron orbits on a plane tilted 20° (rotateX(20deg)), so its path
+// projects as an ellipse with vertical axis cos(20°) ≈ 0.9397 of the
+// horizontal. The trail dots are painted as a flat circle in SVG — to keep
+// the two paths coincident, we squash the SVG trail group by the same
+// cos(20°) around the nucleus (see globals.css `.mark-trail`).
+//
+// Mouse-move sets --tilt-x / --tilt-y on the wrapper for a subtle 3D parallax.
+// Click fires a one-shot expanding ring (.mark-pulse).
 //
 // Keep this in sync with the source SVG if the brand mark changes.
 
@@ -47,24 +65,24 @@ const TRAIL_DOTS: TrailDot[] = [
 const TILT_MAX_DEG = 6;
 
 export function HeroMark() {
-  const svgRef = useRef<SVGSVGElement | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [pulses, setPulses] = useState<number[]>([]);
 
-  function handleMouseMove(e: MouseEvent<SVGSVGElement>) {
-    const svg = svgRef.current;
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
+  function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
+    const wrap = wrapperRef.current;
+    if (!wrap) return;
+    const rect = wrap.getBoundingClientRect();
     const nx = (e.clientX - rect.left) / rect.width - 0.5;
     const ny = (e.clientY - rect.top) / rect.height - 0.5;
-    svg.style.setProperty("--tilt-x", `${(-ny * TILT_MAX_DEG * 2).toFixed(2)}deg`);
-    svg.style.setProperty("--tilt-y", `${(nx * TILT_MAX_DEG * 2).toFixed(2)}deg`);
+    wrap.style.setProperty("--tilt-x", `${(-ny * TILT_MAX_DEG * 2).toFixed(2)}deg`);
+    wrap.style.setProperty("--tilt-y", `${(nx * TILT_MAX_DEG * 2).toFixed(2)}deg`);
   }
 
   function handleMouseLeave() {
-    const svg = svgRef.current;
-    if (!svg) return;
-    svg.style.removeProperty("--tilt-x");
-    svg.style.removeProperty("--tilt-y");
+    const wrap = wrapperRef.current;
+    if (!wrap) return;
+    wrap.style.removeProperty("--tilt-x");
+    wrap.style.removeProperty("--tilt-y");
   }
 
   function handleClick() {
@@ -76,36 +94,32 @@ export function HeroMark() {
   }
 
   return (
-    <svg
-      ref={svgRef}
-      viewBox="60 -20 500 480"
+    <div
+      ref={wrapperRef}
       role="img"
       aria-label="Nukleus mark"
-      style={{ width: "100%", maxWidth: 460, height: "auto" }}
       className="hero-mark"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
     >
-      <defs>
-        <radialGradient id="gn_p2" cx="36%" cy="30%" r="64%">
-          <stop offset="0%" stopColor="#ff5252" />
-          <stop offset="40%" stopColor="#d40d0d" />
-          <stop offset="100%" stopColor="#5c0000" />
-        </radialGradient>
-        <radialGradient id="ge_p2" cx="36%" cy="30%" r="64%">
-          <stop offset="0%" stopColor="#ff5a5a" />
-          <stop offset="40%" stopColor="#cc1010" />
-          <stop offset="100%" stopColor="#5a0000" />
-        </radialGradient>
-        <radialGradient id="hz_p2" cx="50%" cy="48%" r="52%">
-          <stop offset="0%" stopColor="#eaeaf4" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="#f8f8fc" stopOpacity="0" />
-        </radialGradient>
-      </defs>
+      {/* Static layers — nucleus + trail dots — painted in SVG. */}
+      <svg viewBox="60 -20 500 480" aria-hidden="true">
+        <defs>
+          <radialGradient id="gn_p2" cx="36%" cy="30%" r="64%">
+            <stop offset="0%" stopColor="#ff5252" />
+            <stop offset="40%" stopColor="#d40d0d" />
+            <stop offset="100%" stopColor="#5c0000" />
+          </radialGradient>
+          <radialGradient id="hz_p2" cx="50%" cy="48%" r="52%">
+            <stop offset="0%" stopColor="#eaeaf4" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="#f8f8fc" stopOpacity="0" />
+          </radialGradient>
+        </defs>
 
-      <g className="mark-bob">
-        {/* Trail dots — staggered pulse via --i (see globals.css) */}
+        {/* Trail dots — staggered pulse via --i (see globals.css).
+            The whole group is squashed by cos(20°) so the flat SVG ring
+            matches the ellipse the tilted electron orbit traces. */}
         <g className="mark-trail">
           {TRAIL_DOTS.map((d, i) => (
             <circle
@@ -120,20 +134,6 @@ export function HeroMark() {
           ))}
         </g>
 
-        {/* Click-pulse rings: each new click pushes a temporary ring that
-            animates outward from the nucleus and self-removes on end. */}
-        {pulses.map((id) => (
-          <circle
-            key={id}
-            className="mark-pulse"
-            cx="340"
-            cy="225"
-            fill="none"
-            stroke="#d40d0d"
-            onAnimationEnd={() => removePulse(id)}
-          />
-        ))}
-
         {/* Nucleus */}
         <g className="mark-nucleus">
           <circle cx="340" cy="225" r="82" fill="#cc0000" opacity="0.04" />
@@ -142,15 +142,37 @@ export function HeroMark() {
           <ellipse cx="320" cy="208" rx="22" ry="16" fill="#ff6868" opacity="0.36" />
           <ellipse cx="312" cy="202" rx="9" ry="7" fill="#ffbbbb" opacity="0.44" />
         </g>
+      </svg>
 
-        {/* Electron — orbits the nucleus around (340, 225) on a tilted plane */}
-        <g className="mark-orbit">
-          <circle cx="188" cy="138" r="26" fill="#cc0000" opacity="0.05" />
-          <circle cx="188" cy="138" r="24" fill="url(#ge_p2)" />
-          <ellipse cx="180" cy="131" rx="8" ry="6" fill="#ff7070" opacity="0.36" />
-          <ellipse cx="177" cy="129" rx="3.5" ry="2.5" fill="#ffcccc" opacity="0.44" />
-        </g>
-      </g>
-    </svg>
+      {/* HTML overlay: bob > orbit > electron. Pulses get appended into
+          .mark-bob at click time so they bob along with the mark. */}
+      <div className="mark-bob">
+        <div className="mark-orbit">
+          <div className="mark-electron">
+            <svg viewBox="-26 -26 52 52" aria-hidden="true">
+              <defs>
+                <radialGradient id="ge_p2_html" cx="36%" cy="30%" r="64%">
+                  <stop offset="0%" stopColor="#ff5a5a" />
+                  <stop offset="40%" stopColor="#cc1010" />
+                  <stop offset="100%" stopColor="#5a0000" />
+                </radialGradient>
+              </defs>
+              <circle cx="0" cy="0" r="26" fill="#cc0000" opacity="0.05" />
+              <circle cx="0" cy="0" r="24" fill="url(#ge_p2_html)" />
+              <ellipse cx="-8" cy="-7" rx="8" ry="6" fill="#ff7070" opacity="0.36" />
+              <ellipse cx="-11" cy="-9" rx="3.5" ry="2.5" fill="#ffcccc" opacity="0.44" />
+            </svg>
+          </div>
+        </div>
+
+        {pulses.map((id) => (
+          <div
+            key={id}
+            className="mark-pulse"
+            onAnimationEnd={() => removePulse(id)}
+          />
+        ))}
+      </div>
+    </div>
   );
 }

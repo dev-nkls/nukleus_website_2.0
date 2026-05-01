@@ -429,6 +429,15 @@ section + section { border-top: 1px solid var(--border); }
 }
 .hero.bold.services-hero { min-height: 60vh; padding: 120px 0 96px; }
 .hero.bold > .container { position: relative; z-index: 2; }
+/* PERF NOTES (2026-05-01)
+   1) hero-video: greyscale + brightness ARE intended to be baked into
+      the .mp4 file (one ffmpeg pass — see CLAUDE.md "Hero video encoding").
+      The CSS filter below is kept as a fallback so the look is correct
+      even when the source clip hasn't been re-encoded yet.
+   2) hero-mesh: blur is STATIC. Animating filter:blur() is the most
+      expensive thing in CSS — every keyframe re-runs the blur kernel.
+      Animate transform only and let the compositor do it for free.
+   3) Both layers are GPU-promoted with will-change + translateZ(0). */
 .hero-video,
 .hero-mesh,
 .hero-veil {
@@ -441,6 +450,9 @@ section + section { border-top: 1px solid var(--border); }
   object-fit: cover;
   opacity: 0;
   transition: opacity 600ms var(--ease-out);
+  transform: translateZ(0);
+  will-change: opacity;
+  /* Fallback grade — matches the intended baked-encode look. */
   filter: grayscale(1) brightness(1.55) contrast(0.78);
 }
 .hero-video.is-ready { opacity: 0.95; }
@@ -451,9 +463,10 @@ section + section { border-top: 1px solid var(--border); }
     radial-gradient(ellipse 50% 60% at 82% 72%, rgba(255, 82, 82, 0.08), transparent 65%),
     radial-gradient(ellipse 70% 45% at 50% 95%, rgba(255, 140, 140, 0.07), transparent 70%),
     radial-gradient(ellipse 80% 60% at 60% 10%, rgba(245, 240, 235, 0.40), transparent 70%);
-  filter: blur(16px) saturate(1.05);
+  filter: blur(16px) saturate(1.05); /* STATIC — applied once, never animated */
   animation: hero-mesh-drift 28s ease-in-out infinite;
-  will-change: background-position, transform;
+  transform: translateZ(0);
+  will-change: transform;
 }
 @keyframes hero-mesh-drift {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1.00); }
@@ -483,7 +496,31 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
    the existing dotted ring; the trail dots pulse in sequence around the
    ring; the nucleus carries a soft glow; clicking the mark fires an
    expanding ring pulse. Hover smoothly accelerates the orbit.
-   Inline SVG (HeroMark) is required because :hover can't reach into <img>. */
+
+   PERF (2026-05-01): The orbiting electron is an HTML overlay (a div),
+   not an SVG group. Animating transforms on SVG groups forced a CSS-pixel
+   re-rasterization of the whole SVG every frame at any non-trivial
+   viewport size and was the cause of orbit jank. The HTML wrapper
+   transforms on the compositor at native refresh.
+
+   Layout: .hero-mark is a positioning context. The SVG layer paints the
+   static nucleus + 25 trail dots. On top of the SVG, three absolutely-
+   positioned HTML elements share a common rotation pivot at the nucleus:
+     .mark-bob       — the whole orbit/electron assembly that floats up/down
+     .mark-orbit     — does the rotateX(20°) + rotate(...) spin
+     .mark-electron  — the visible electron sphere (its own tiny SVG)
+     .mark-pulse     — click-triggered expanding ring (HTML, scale-animated)
+   Pivot math: nucleus at SVG (340, 225). With viewBox "60 -20 500 480",
+   that's (340-60)/500 = 56% across, (225-(-20))/480 = 51.04% down.
+
+   Trail-ring radius (measured from the TRAIL_DOTS array): ~175.5 SVG units
+   = 35.1% of the 500-unit-wide viewBox, so the electron sits at 35.1cqw.
+
+   The electron orbits on a plane tilted 20° (rotateX(20deg)), so its path
+   projects as an ellipse with vertical axis cos(20°) ≈ 0.9397 of the
+   horizontal. The trail dots are painted as a flat circle in SVG. To
+   keep the two paths coincident, we squash the SVG trail group by the
+   same cos(20°) around the nucleus — see .mark-trail rule below. */
 @property --orbit-duration {
   syntax: "<time>";
   inherits: true;
@@ -493,29 +530,95 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
 .hero-mark {
   position: relative;
   z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  aspect-ratio: 500 / 480;
   perspective: 1000px;
   transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
   transition: transform 320ms ease-out;
   cursor: pointer;
+  /* enable cqw units on children for fluid sizing of the electron + pulse */
+  container-type: inline-size;
+}
+.hero-mark > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* HTML overlay layers — full-bleed transparent boxes so percentage sizes
+   on children resolve against the mark's actual dimensions. */
+.mark-bob,
+.mark-orbit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform-style: preserve-3d;
 }
 .mark-bob {
   animation: mark-bob 5.5s ease-in-out infinite alternate;
   will-change: transform;
+  transform-origin: 56% 51.04%;
 }
-.mark-nucleus {
-  animation: mark-nucleus-pulse 4s ease-in-out infinite alternate;
-  will-change: filter;
-}
-/* Orbit: tilted plane (rotateX 20deg) + counter-clockwise spin around (340,225). */
+/* Orbit applies the tilt + spin around the nucleus pivot. */
 .mark-orbit {
+  animation: mark-orbit var(--orbit-duration, 12s) linear infinite;
+  transition: --orbit-duration 400ms ease-out;
+  will-change: transform;
+  transform: rotateX(20deg);
+  transform-origin: 56% 51.04%;
+}
+
+/* Electron: positioned at the nucleus, then translated out along -Y so
+   the parent rotation sweeps it around the ring. Width is in cqw units
+   (container query width) on the .hero-mark so it scales fluidly.
+   Initial position = top of ring; .mark-orbit's starting rotation places
+   it at the upper-left where the original SVG drew it.
+   Original angle: electron at SVG (188,138) vs nucleus (340,225) = (-152,-87)
+   -> atan2(-87,-152) = 210° from +X axis = 120° CCW from 12 o'clock,
+   so we set the orbit's keyframe to start at -120° and run to -480°. */
+.mark-electron {
+  position: absolute;
+  left: 56%;
+  top: 51.04%;
+  width: 10.5cqw;
+  height: 10.5cqw;
+  transform: translate(-50%, calc(-50% - 35.1cqw)) translateZ(0);
+  will-change: transform, filter;
+  transition: filter 300ms ease-out;
+  filter: drop-shadow(0 0 0 rgba(212, 13, 13, 0));
+}
+.mark-electron svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* Click-pulse ring — HTML element, scale-animated. Sized in cqw so it
+   scales with the mark on every breakpoint. */
+.mark-pulse {
+  position: absolute;
+  left: 56%;
+  top: 51.04%;
+  width: 48cqw;
+  height: 48cqw;
+  border-radius: 50%;
+  border: 3px solid #d40d0d;
+  transform: translate(-50%, -50%) scale(0.25);
+  animation: mark-pulse-expand 800ms ease-out forwards;
+  pointer-events: none;
+}
+
+/* Trail dots stay in SVG — they don't translate, just scale-pulse in place,
+   so SVG's per-shape repaint is cheap. The whole trail group is squashed
+   vertically around the nucleus (340, 225) so the flat SVG ring matches
+   the ellipse the tilted electron orbit traces (cos(20°) ≈ 0.9397). */
+.mark-trail {
   transform-box: view-box;
   transform-origin: 340px 225px;
-  animation: mark-orbit var(--orbit-duration, 12s) linear infinite;
-  transition: --orbit-duration 400ms ease-out, filter 300ms ease-out;
-  filter: drop-shadow(0 0 0 rgba(212, 13, 13, 0));
-  will-change: transform, filter;
+  transform: scaleY(0.9397);
 }
-/* Trail dots: subtle scale pulse staggered around the ring via --i. */
 .mark-trail circle {
   transform-box: fill-box;
   transform-origin: center;
@@ -523,21 +626,21 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
   animation-delay: calc(var(--i, 0) * -0.1s);
   will-change: transform;
 }
-/* Click pulse: expanding ring centered on the nucleus. */
-.mark-pulse {
-  transform-box: view-box;
-  transform-origin: 340px 225px;
-  animation: mark-pulse-expand 800ms ease-out forwards;
-  pointer-events: none;
+/* Nucleus glow stays in SVG. */
+.mark-nucleus {
+  animation: mark-nucleus-pulse 4s ease-in-out infinite alternate;
+  will-change: filter;
 }
 
 @keyframes mark-bob {
   from { transform: translateY(-6px); }
   to   { transform: translateY(6px); }
 }
+/* Orbit starts at -120° so the electron lands at the same upper-left
+   position the original SVG drew it at, and runs counter-clockwise. */
 @keyframes mark-orbit {
-  from { transform: rotateX(20deg) rotate(0deg); }
-  to   { transform: rotateX(20deg) rotate(-360deg); }
+  from { transform: rotateX(20deg) rotate(-120deg); }
+  to   { transform: rotateX(20deg) rotate(-480deg); }
 }
 @keyframes mark-nucleus-pulse {
   from { filter: drop-shadow(0 0 14px rgba(212, 13, 13, 0.20)); }
@@ -548,12 +651,14 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
   35%           { transform: scale(1.55); }
 }
 @keyframes mark-pulse-expand {
-  0%   { r: 60;  opacity: 0.65; stroke-width: 3; }
-  100% { r: 240; opacity: 0;    stroke-width: 0.5; }
+  0%   { transform: translate(-50%, -50%) scale(0.25); opacity: 0.65; border-width: 3px; }
+  100% { transform: translate(-50%, -50%) scale(1.05); opacity: 0;    border-width: 0.5px; }
 }
 
 .hero.bold .mark-col:hover .mark-orbit {
   --orbit-duration: 1.2s;
+}
+.hero.bold .mark-col:hover .mark-electron {
   filter: drop-shadow(0 0 12px rgba(212, 13, 13, 0.55));
 }
 .hero.bold .mark-col:hover .mark-bob { animation-duration: 3s; }
@@ -564,8 +669,9 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
   .mark-nucleus,
   .mark-trail circle,
   .mark-pulse { animation: none; }
-  .hero-mark   { transform: none; transition: none; }
-  .mark-orbit  { transition: none; filter: none; transform: rotateX(20deg); }
+  .hero-mark    { transform: none; transition: none; }
+  .mark-orbit   { transition: none; transform: rotateX(20deg); }
+  .mark-electron { filter: none; transition: none; }
 }
 
 /* Scroll cue */
@@ -831,44 +937,80 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
 .cta-band.bold .btn-primary:hover { background: #ffe5e5; }
 
 /* ============================================================
-   Services page — full-page video backdrop + hover-reveal rows
+   Page-wide video backdrop — used by services, approach, about,
+   contact. Each page wraps its content in .page-bg-host and includes
+   a .page-bg layer that holds a <video> element. The veil ::before
+   floats a warm-cream wash + faint red ellipses over the muted video
+   so content reads cleanly on top.
    ============================================================ */
 
-.services-page-bold,
-.approach-page-bold { position: relative; isolation: isolate; }
-.services-page-bold .services-bg,
-.approach-page-bold .services-bg {
-  position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+.page-bg-host { position: relative; isolation: isolate; }
+.page-bg-host > section { position: relative; z-index: 1; }
+.page-bg {
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none; overflow: hidden;
 }
-.services-page-bold .services-bg .hero-video,
-.services-page-bold .services-bg .hero-mesh,
-.services-page-bold .services-bg .hero-veil,
-.approach-page-bold .services-bg .hero-video,
-.approach-page-bold .services-bg .hero-mesh,
-.approach-page-bold .services-bg .hero-veil {
-  position: absolute; inset: 0; width: 100%; height: 100%;
+.page-bg video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 800ms var(--ease-out);
+  transform: translateZ(0);
+  will-change: opacity;
+  /* Same monochrome wash as the home hero video. */
+  filter: grayscale(1) brightness(1.6) contrast(0.74);
 }
-.services-page-bold .hero.bold.services-hero,
-.approach-page-bold .hero.bold.services-hero { min-height: auto; padding: 120px 0 56px; }
-.services-page-bold > section,
-.approach-page-bold > section { position: relative; z-index: 1; }
-html[data-theme="dark-red"] .services-page-bold .services-bg,
-html[data-theme="dark-red"] .approach-page-bold .services-bg { display: none; }
+.page-bg video.is-ready { opacity: 0.55; }
+.page-bg::before {
+  content: "";
+  position: absolute; inset: 0; z-index: 1;
+  background:
+    radial-gradient(ellipse 70% 50% at 18% 14%, rgba(212, 13, 13, 0.05), transparent 60%),
+    radial-gradient(ellipse 60% 60% at 88% 82%, rgba(212, 13, 13, 0.035), transparent 60%),
+    linear-gradient(180deg,
+      rgba(245, 240, 235, 0.275) 0%,
+      rgba(245, 240, 235, 0.40) 35%,
+      rgba(245, 240, 235, 0.465) 100%);
+}
+html[data-theme="dark-red"] .page-bg { display: none; }
 
-.services-page-bold .services-lede {
-  max-width: none;
-  margin-top: 28px;
-  color: var(--fg);
-  text-wrap: pretty;
-  line-height: 1.6;
-  font-size: 19px;
+/* ============================================================
+   Center-aligned hero (services / about / contact)
+   ============================================================ */
+
+.center-hero { padding: 96px 0 56px; text-align: center; }
+.center-hero .eyebrow { display: block; margin-bottom: 16px; }
+.center-hero h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(48px, 5vw, 68px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  font-variation-settings: "opsz" 96;
 }
+.center-hero h1 .accent { color: var(--accent); font-style: italic; font-weight: 500; }
+.center-hero .lede {
+  margin: 24px auto 0;
+  max-width: 720px;
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--fg-muted);
+  text-wrap: pretty;
+}
+.center-hero.left-align { text-align: left; }
+.center-hero.left-align .eyebrow { display: inline-block; margin-bottom: 22px; }
+.center-hero.left-align .lede { margin-left: 0; margin-right: 0; }
+
+/* ============================================================
+   Services page — hover-reveal rows on a video backdrop
+   ============================================================ */
 
 .services-list {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
-.services-page-bold .services-list { border-top-color: rgba(0, 0, 0, 0.12); }
-.services-page-bold .service-row { border-bottom-color: rgba(0, 0, 0, 0.12); }
+.services-list .service-row { border-bottom-color: rgba(0, 0, 0, 0.12); }
 
 .service-row {
   display: grid;
@@ -940,92 +1082,157 @@ html[data-theme="dark-red"] .approach-page-bold .services-bg { display: none; }
 }
 
 /* ============================================================
-   Approach page — pillars (flip) + timeline (hover reveal)
+   Approach page — center hero, flat pillars, manifesto divider,
+   engagement timeline with card chrome
    ============================================================ */
 
-.approach-page-bold .accent { color: var(--accent); }
-.approach-page-bold .services-lede {
-  max-width: none;
-  margin-top: 28px;
-  color: var(--fg);
-  text-wrap: pretty;
-  line-height: 1.6;
-  font-size: 19px;
-}
-.approach-page-bold .approach-section-lede {
-  color: var(--fg);
-  text-wrap: pretty;
-  line-height: 1.6;
-  font-size: 19px;
-  font-weight: 500;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-html[data-theme="dark-red"] .approach-page-bold .approach-section-lede { text-shadow: none; }
+.approach-page-bold { position: relative; isolation: isolate; }
+.approach-page-bold .accent { color: var(--accent); font-style: italic; font-weight: 500; }
 
+/* Big editorial hero — full-viewport, centered. */
+.approach-hero {
+  padding: 120px 0 88px;
+  text-align: center;
+  position: relative;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+}
+.approach-hero .container { width: 100%; }
+.approach-hero .eyebrow { display: block; margin-bottom: 22px; }
+.approach-hero h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(64px, 8vw, 120px);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  font-variation-settings: "opsz" 144;
+  margin: 0 auto;
+  max-width: 14ch;
+}
+.approach-hero .lede {
+  margin: 32px auto 0;
+  max-width: 620px;
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--fg-muted);
+  text-wrap: pretty;
+}
+.approach-hero .scroll-cue {
+  margin-top: 64px;
+  position: static;
+  transform: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  font-weight: 500;
+}
+.approach-hero .scroll-cue::after {
+  content: "";
+  width: 1px; height: 44px;
+  background: linear-gradient(to bottom, var(--accent), transparent);
+  animation: approach-scroll-cue-pulse 2.4s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes approach-scroll-cue-pulse {
+  0%, 100% { opacity: 0.35; transform: scaleY(0.6); }
+  50%      { opacity: 1.0;  transform: scaleY(1.0); }
+}
+
+/* Section head used by the engagement section ("Four steps, one direction"). */
+.approach-section-head {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 56px;
+}
+.approach-section-head .eyebrow { display: inline-block; margin-bottom: 18px; }
+.approach-section-head h2 {
+  font-family: var(--font-heading);
+  font-size: clamp(40px, 4.4vw, 60px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--fg);
+  text-wrap: balance;
+  font-variation-settings: "opsz" 96;
+  margin: 0;
+}
+.approach-section-head h2 .accent { color: var(--accent); font-style: italic; font-weight: 500; }
+.approach-section-head .lede {
+  margin-top: 18px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--fg-muted);
+  text-wrap: pretty;
+}
+
+/* Flat (non-flip) pillar — always-visible numeral + title + body. */
 .approach-pillars {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
-  background: rgba(0, 0, 0, 0.12);
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  perspective: 1200px;
+  background: rgba(0, 0, 0, 0.10);
+  border-top: 1px solid rgba(0, 0, 0, 0.10);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.10);
 }
 html[data-theme="dark-red"] .approach-pillars {
   background: var(--border); border-color: var(--border);
 }
 .approach-pillar {
   position: relative;
-  padding: 0;
-  min-height: 280px;
-  background: transparent;
-}
-.pillar-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 280px;
-  transform-style: preserve-3d;
-  transition: transform 600ms var(--ease-out);
-}
-.approach-pillar:hover .pillar-inner,
-.approach-pillar:focus-within .pillar-inner {
-  transform: rotateY(180deg);
-}
-.pillar-face {
-  position: absolute;
-  inset: 0;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  padding: 56px 32px 48px;
+  min-height: 360px;
+  padding: 56px 36px 48px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: background var(--duration-base) var(--ease-out);
+  cursor: default;
+  outline: none;
 }
-.pillar-front { background: rgba(255, 255, 255, 0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-html[data-theme="dark-red"] .pillar-front { background: rgba(20, 8, 8, 0.55); }
-.pillar-back {
+html[data-theme="dark-red"] .approach-pillar { background: rgba(20, 8, 8, 0.55); }
+.approach-pillar::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 2px;
   background: var(--accent);
-  color: #fff;
-  transform: rotateY(180deg);
-  display: flex;
-  align-items: center;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 480ms var(--ease-out);
 }
-.pillar-back p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #fff;
-  margin: 0;
-  text-wrap: pretty;
+.approach-pillar:hover,
+.approach-pillar:focus-visible {
+  background: rgba(255, 255, 255, 0.94);
 }
+html[data-theme="dark-red"] .approach-pillar:hover,
+html[data-theme="dark-red"] .approach-pillar:focus-visible {
+  background: rgba(20, 8, 8, 0.78);
+}
+.approach-pillar:hover::after,
+.approach-pillar:focus-visible::after { transform: scaleX(1); }
 .approach-pillar .num {
   font-family: var(--font-heading);
   font-style: italic;
   font-weight: 400;
-  font-size: 64px;
-  line-height: 0.9;
-  color: var(--accent);
+  font-size: 132px;
+  line-height: 0.85;
   letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--accent);
+  transition: color var(--duration-base) var(--ease-out);
+}
+.approach-pillar:hover .num,
+.approach-pillar:focus-visible .num {
+  color: color-mix(in oklab, var(--accent) 14%, transparent);
 }
 .approach-pillar h3 {
   font-family: var(--font-heading);
@@ -1033,62 +1240,84 @@ html[data-theme="dark-red"] .pillar-front { background: rgba(20, 8, 8, 0.55); }
   font-size: clamp(28px, 2.6vw, 38px);
   line-height: 1.05;
   letter-spacing: -0.02em;
+  margin: 4px 0 0;
+  color: var(--fg);
+}
+.approach-pillar .pillar-desc {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--fg-muted);
   margin: 0;
+  text-wrap: pretty;
 }
 @media (max-width: 900px) {
   .approach-pillars { grid-template-columns: 1fr; }
 }
 
-.approach-page-bold .section-head h2 .accent { color: var(--accent); }
-
-.timeline {
+/* Manifesto-style divider band between pillars and engagement. */
+.approach-divider {
+  margin: 0;
+  padding: 96px 0;
+  background: linear-gradient(135deg, #1a0509 0%, #2a0a0e 50%, #1a0509 100%);
+  color: #f6f1ed;
   position: relative;
-  margin-top: 48px;
-  padding-left: 8px;
+  overflow: hidden;
 }
-.timeline::before {
+.approach-divider::before {
   content: "";
   position: absolute;
-  left: 27px;
-  top: 28px;
-  bottom: 28px;
-  width: 1px;
-  background: linear-gradient(to bottom, var(--accent) 0%, var(--accent) 70%, transparent 100%);
-  opacity: 0.5;
+  top: -20%; left: -10%;
+  width: 70%; height: 140%;
+  background: radial-gradient(ellipse at center, rgba(204, 16, 32, 0.20) 0%, transparent 60%);
+  pointer-events: none;
 }
+.approach-divider .container { position: relative; z-index: 1; text-align: center; }
+.approach-divider .eyebrow { color: rgba(246, 241, 237, 0.55); }
+.approach-divider blockquote {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(36px, 5.4vw, 76px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: #f6f1ed;
+  margin: 24px auto 0;
+  text-wrap: balance;
+  max-width: 1100px;
+  font-variation-settings: "opsz" 96;
+}
+.approach-divider blockquote .accent { color: #ff6b7a; font-style: italic; }
+
+/* Timeline — used in the engagement section. Always-visible descriptions
+   (no hover-reveal) with translucent card chrome over the video. */
+.timeline { position: relative; padding-top: 8px; padding-left: 0; }
 .timeline-step {
   position: relative;
   display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 28px;
-  padding: 28px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  grid-template-columns: 64px 1fr;
+  gap: 32px;
+  padding: 32px 0;
 }
-html[data-theme="dark-red"] .timeline-step { border-bottom-color: var(--border); }
-.timeline-step:last-child { border-bottom: none; }
 .timeline-marker {
-  width: 56px; height: 56px;
+  width: 64px; height: 64px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.92);
   border: 1.5px solid var(--accent);
   display: grid; place-items: center;
   position: relative;
   z-index: 1;
   transition: background var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 8px 20px -12px rgba(160, 24, 24, 0.30);
 }
 html[data-theme="dark-red"] .timeline-marker { background: rgba(20, 8, 8, 0.85); }
-.timeline-step:hover .timeline-marker { background: var(--accent); transform: scale(1.05); }
-.timeline-step:hover .timeline-num { color: #fff; }
+.timeline-step:hover .timeline-marker { transform: scale(1.06); }
 .timeline-num {
   font-family: var(--font-heading);
   font-style: italic;
   font-weight: 600;
-  font-size: 22px;
+  font-size: 26px;
   line-height: 1;
   color: var(--accent);
-  transition: color var(--duration-base) var(--ease-out);
 }
 .timeline-body h3 {
   font-family: var(--font-heading);
@@ -1097,43 +1326,36 @@ html[data-theme="dark-red"] .timeline-marker { background: rgba(20, 8, 8, 0.85);
   line-height: 1.1;
   letter-spacing: -0.02em;
   margin: 6px 0 10px;
+  color: var(--fg);
 }
 .timeline-body p {
-  margin: 0;
+  margin: 8px 0 0;
   font-size: 16px;
-  line-height: 1.6;
-  color: #fff;
-  background: var(--accent);
-  padding: 12px 16px;
-  border-radius: 10px;
+  line-height: 1.65;
+  color: var(--fg-muted);
   max-width: 64ch;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height var(--duration-base) var(--ease-out),
-              opacity var(--duration-base) var(--ease-out),
-              margin-top var(--duration-base) var(--ease-out),
-              padding var(--duration-base) var(--ease-out);
-  padding-top: 0;
-  padding-bottom: 0;
+  text-wrap: pretty;
 }
-.timeline-step:hover .timeline-body p,
-.timeline-step:focus-within .timeline-body p {
-  max-height: 240px;
-  opacity: 1;
-  margin-top: 8px;
-  padding-top: 12px;
-  padding-bottom: 12px;
+
+/* Engagement section — card chrome on each step so they read on the
+   translucent video backdrop. (User-flagged "faded" issue from chat3.) */
+.approach-engagement .timeline-step {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  padding: 28px 32px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 8px 24px -16px rgba(20, 8, 8, 0.18);
 }
-@media (max-width: 720px) {
-  .timeline-step .timeline-body p {
-    max-height: 240px;
-    opacity: 1;
-    margin-top: 8px;
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
+html[data-theme="dark-red"] .approach-engagement .timeline-step {
+  background: rgba(20, 8, 8, 0.55);
+  border-color: var(--border);
 }
+.approach-engagement .timeline-step:last-child { margin-bottom: 0; }
+.approach-engagement .timeline-marker { background: #fff; }
+html[data-theme="dark-red"] .approach-engagement .timeline-marker { background: rgba(20, 8, 8, 0.85); }
 
 /* ============================================================
    About page — prose with red drop cap

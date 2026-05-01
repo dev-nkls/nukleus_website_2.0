@@ -1,44 +1,38 @@
 import type { Metadata } from "next";
+import { PageBg } from "@/components/page-bg";
 
 export const metadata: Metadata = {
   title: "About",
-  description:
-    "Business-first technologists shipping production AI across regulated industries.",
+  description: "The team behind Nukleus.",
 };
 
 export default function AboutPage() {
   return (
-    <>
-      <section className="hero" style={{ paddingTop: 80, paddingBottom: 64 }}>
+    <div className="page-bg-host">
+      <PageBg />
+
+      <section className="center-hero left-align">
         <div className="container">
           <span className="eyebrow">About</span>
-          <h1 style={{ marginTop: 18, maxWidth: 880 }}>
-            Business-first technologists.
-          </h1>
-          <p className="lede">
-            Nukleus is a partnership of engineers, data scientists, and analysts who&apos;ve shipped production systems across banking, insurance, lending, e-commerce, automotive, energy, software, and consumer products.
-          </p>
+          <h1>The team behind Nukleus.</h1>
         </div>
       </section>
 
-      <section style={{ paddingTop: 0 }}>
+      <section style={{ paddingTop: 24 }}>
         <div className="container">
           <div className="about-prose">
             <p className="first">
-              Our mission is straightforward: empower enterprises with bespoke technology that delivers actionable information at the right time. We start with the business decision, not the framework, not the model, and work backward to the system that supports it.
+              Nukleus is a small, senior team of engineers and applied scientists who design and ship AI systems for the businesses paying for them, not for conferences, not for venture decks, not for the demo reel.
             </p>
             <p>
-              We immerse ourselves in your domain. Each engagement begins with us learning your industry&apos;s vocabulary, your regulatory constraints, and the texture of the work your team actually does. The technology we build reflects what we learn.
+              We started Nukleus because most AI work was being scoped by the wrong people, priced by the hour, and shipped without the monitoring that would tell you whether it was actually working. We do the opposite. We scope against the decision the business is trying to make, price against the outcome, and stay on the model after launch.
             </p>
             <p>
-              We charge against outcomes because that&apos;s the contract that aligns us. A percentage of revenue gained or cost saved, transparent measurement, mutual incentive, minimised risk for you.
-            </p>
-            <p>
-              If that&apos;s the shape of partnership you&apos;re looking for, the contact form is two clicks away.
+              If you have a problem that genuinely needs an AI-shaped answer, we&apos;d like to hear about it. If you don&apos;t, we&apos;ll tell you that too.
             </p>
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

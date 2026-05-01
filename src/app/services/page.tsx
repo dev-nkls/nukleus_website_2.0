@@ -1,60 +1,56 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { HeroVideo } from "@/components/hero-video";
+import { PageBg } from "@/components/page-bg";
 
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Six capabilities, one team. Data analytics, AI, data engineering, BI, cloud integration, and model monitoring.",
+    "Custom AI systems engineered around your specific business problems.",
 };
 
-const rows = [
+const rows: { title: string; body: string }[] = [
   {
-    title: "Data analytics",
-    body: "Strategy, integration, and the full descriptive to diagnostic to predictive to prescriptive ladder. Big data, real-time, industry-specific. Insight your operators can act on, not a deck.",
+    title: "Data analytics.",
+    body: "Descriptive, diagnostic, predictive, prescriptive. The full ladder, turning raw operational data into the insight that informs the next decision.",
   },
   {
-    title: "Artificial intelligence",
-    body: "Predictive models, machine learning, computer vision, NLP, chatbots, virtual assistants. Strategy through implementation, with the regulatory rigour your industry expects.",
+    title: "Artificial intelligence.",
+    body: "Predictive models, computer vision, NLP, machine learning. Designed for production, validated for compliance, monitored after launch.",
   },
   {
-    title: "Data engineering",
-    body: "Pipelines, warehousing, integration, governance, quality. Cloud-native or on-prem, batch or real-time. The foundation that makes everything above it possible.",
+    title: "Data engineering.",
+    body: "Pipelines, warehousing, governance, real-time processing. The foundation underneath everything else, built to scale with the business.",
   },
   {
-    title: "Business intelligence",
-    body: "Reporting, visualisation, dashboarding, self-service BI, advanced analytics integration. The right information in the right hands at the right time.",
+    title: "Business intelligence.",
+    body: "Dashboards, self-service reporting, advanced analytics integration. The right information in the right hands at the right time.",
   },
   {
-    title: "Cloud integration",
-    body: "Strategy, migration, platform selection, hybrid architectures, API design and management. A connected, agile IT ecosystem without the migration drama.",
+    title: "Cloud integration.",
+    body: "On-premises to cloud, API development, hybrid architectures. A connected, agile IT ecosystem without the migration drama.",
   },
   {
-    title: "Model monitoring & maintenance",
-    body: "Drift detection, validation, retraining, auditing, regulatory compliance. The work that begins after launch, because models in production aren't models in a notebook.",
+    title: "Model monitoring.",
+    body: "Drift detection, retraining, audit trails, regulatory compliance. We don't ship a model and walk away, we keep it accurate.",
   },
 ];
 
 export default function ServicesPage() {
   return (
-    <div className="services-page-bold">
-      <div className="services-bg" aria-hidden="true">
-        <HeroVideo />
-      </div>
+    <div className="page-bg-host">
+      <PageBg />
 
-      <section className="hero bold services-hero">
+      <section className="center-hero">
         <div className="container">
           <span className="eyebrow">Services</span>
-          <h1 style={{ marginTop: 18, maxWidth: 880 }}>
-            What we <span className="accent">build.</span>
-          </h1>
-          <p className="lede services-lede">
-            Six capabilities, one team. We design and ship the technology that turns enterprise data into timely, actionable decisions, from the pipeline beneath to the model on top.
+          <h1>What we build.</h1>
+          <p className="lede">
+            Custom AI systems engineered around your specific business problems, from production-grade agents to task automation to model-backed internal tools.
           </p>
         </div>
       </section>
 
-      <section style={{ paddingTop: 0, paddingBottom: 96, position: "relative", zIndex: 1 }}>
+      <section style={{ paddingTop: 24 }}>
         <div className="container">
           <div className="services-list">
             {rows.map((r) => (

@@ -40,15 +40,16 @@ src/
     layout.tsx                # root metadata + Geist/Fraunces fonts + chrome wrap
     globals.css               # Tailwind v4 + shadcn vars + Nukleus tokens + bold-variant component CSS
     page.tsx                  # home — bold hero (video bg) + manifesto + industries + services + proof + CTA
-    services/page.tsx         # /services — full-page video bg + headline-only hover-reveal rows
-    approach/page.tsx         # /approach — full-page video bg + flip pillars + hover-reveal timeline
-    about/page.tsx            # /about — prose with red drop cap
-    contact/page.tsx          # /contact — centered hero + ContactForm
+    services/page.tsx         # /services — page-bg video + center-hero + hover-reveal service rows
+    approach/page.tsx         # /approach — two scoped video sections (hero+pillars / engagement) + manifesto bridge + flat pillars + card-chrome timeline
+    about/page.tsx            # /about — page-bg video + left-aligned center-hero + prose with red drop cap
+    contact/page.tsx          # /contact — page-bg video + centered hero + ContactForm
   components/
     site-header.tsx           # mark + "NUKLEUS" wordmark (19.5px) + nav + ThemeToggle (server)
     site-footer.tsx           # mark + nav + © line (no year)
-    hero-video.tsx            # client — video + mesh + veil layers; sets .is-ready when video loads
-    hero-mark.tsx             # client — inlined animated brand mark (orbit + bob + parallax + click pulse)
+    hero-video.tsx            # client — home hero video + mesh + veil layers; sets .is-ready
+    hero-mark.tsx             # client — animated brand mark (HTML-overlay orbit, bob, parallax, click pulse)
+    page-bg.tsx               # client — video backdrop for non-home pages (services/approach/about/contact); supports duration/2 offset for stacked instances
     scroll-cue.tsx            # client — animated scroll chevron, fades on scroll
     theme-toggle.tsx          # client — toggles html[data-theme="dark-red"] (light ⇄ red-tinted dark)
     contact-form.tsx          # client — form + toast (no backend yet — TBD)
@@ -76,7 +77,13 @@ amplify.yml    # Amplify Hosting build spec
 - **Header / footer mark:** `public/brand/nukleus_mark.svg` — original mark with the baked-in atmospheric halo. Rendered ~36×36 in the header and ~24×24 in the footer.
 - **Home hero mark:** rendered by `<HeroMark />` ([src/components/hero-mark.tsx](src/components/hero-mark.tsx)), which inlines the same paths as `nukleus_mark_clean.svg` plus animation hooks (`.mark-bob`, `.mark-orbit`, `.mark-trail`, `.mark-nucleus`, `.mark-pulse`). The `.svg` file itself is no longer referenced by the home page but is kept on disk as the "source of truth" for the static mark — keep the two in sync if the mark ever changes.
 - **Padded mark variant:** `public/brand/nukleus_mark_padded.svg` — wider viewBox so the outer particles aren't clipped. Kept for future hero treatments.
-- **Hero video:** `public/brand/hero_bg.mp4` — 3MB cinematic particle field. Greyscale-filtered + brightened via CSS; visible in light mode only (hidden in `data-theme="dark-red"` and disabled under `prefers-reduced-motion`).
+- **Hero video:** `public/brand/hero_bg.mp4` — 3MB cinematic particle field. Reused across the home hero AND every other page (via `<PageBg />`). Greyscale + brightness are applied as a CSS filter; the intent is to bake them into the encode itself for perf, but the CSS filter remains as a fallback. **One-time ffmpeg pass to bake the look into the file:**
+
+  ```bash
+  ffmpeg -i hero_bg.mp4 -vf "format=gray, eq=brightness=0.10:contrast=0.78:saturation=0" -c:a copy hero_bg_baked.mp4
+  ```
+
+  Once the encode is in place you can drop the `filter:` rules on `.hero-video` and `.page-bg video` for ~3× the framerate on 2K+ displays.
 - **Favicon:** `src/app/icon.svg` (Next auto-detects). Mirrors `nukleus_mark.svg` — regenerate both together if the mark changes.
 
 ### Design tokens
@@ -91,19 +98,27 @@ All tokens live in `src/app/globals.css`:
 
 The bold variant brought a lot of opinionated CSS that pages reach into directly via plain class names (rather than utility soup). Anything new should follow this pattern — define the class in `globals.css`, apply it in TSX:
 
-- `.hero.bold` — full-viewport hero with `<HeroVideo />` (video + mesh + veil layers).
+- `.hero.bold` — full-viewport home hero with `<HeroVideo />` (video + mesh + veil layers, all GPU-promoted via `translateZ(0)`).
 - `.manifesto` — dark gradient band with oversized italic Fraunces blockquote (home page).
 - `.industries-band` + `.industries-track` — scrolling marquee of industries served.
 - `.services-grid.bold` — 6 tiles with oversized italic outlined numerals (home page).
 - `.proof.bold` — italic blockquote with giant " backdrop (home pricing).
 - `.cta-band.bold` — full-bleed dark red CTA above footer (home page).
-- `.services-page-bold` / `.approach-page-bold` — wrap the whole page so the video backdrop spans hero + content.
-- `.service-row` — headline-only row that floods red on hover and reveals the description.
-- `.approach-pillars` + `.pillar-inner` / `.pillar-front` / `.pillar-back` — flip-card pillars (front: numeral + title; back: red card with description).
-- `.timeline` + `.timeline-step` — vertical timeline with red connector; description appears as a red callout on hover.
+- `.page-bg-host` + `.page-bg` — shared video-backdrop wrapper used by services / approach / about / contact. The `<PageBg />` client component renders the video; the `.page-bg::before` veil floats a warm-cream wash + faint red ellipses over the muted footage so content reads cleanly.
+- `.center-hero` — center-aligned hero used by services / about / contact. Add `.left-align` modifier for the about page (eyebrow + h1 left-aligned, no lede block).
+- `.service-row` — headline-only row that floods red on hover and reveals the description (services page).
+- **Approach page family:**
+  - `.approach-page-bold` — page wrapper.
+  - `.approach-block.page-bg-host` — wraps the hero + pillars under one shared video instance.
+  - `.approach-hero` — full-viewport centered hero with oversized italic-accented H1 + "Three principles" pulsing scroll cue.
+  - `.approach-pillars` + `.approach-pillar` + `.pillar-desc` — flat (non-flip) cards with always-visible numeral + title + description; oversized outlined italic Fraunces numerals fill on hover, with a red underline.
+  - `.approach-divider` — manifesto-style bridge between pillars and engagement ("From first call to *first value*, in weeks, not quarters.").
+  - `.approach-engagement.page-bg-host` — engagement section with its own video instance, offset to duration/2 so the two videos don't lockstep.
+  - `.approach-section-head` — centered eyebrow + h2 + lede header used by the engagement section.
+  - `.timeline` + `.timeline-step` — vertical timeline with always-visible descriptions. Within `.approach-engagement`, each step is wrapped in translucent white card chrome so it reads against the video.
 - `.about-prose` — single-column prose with red Fraunces drop cap on `p.first`.
 - `.scroll-cue` — bottom-of-hero chevron that fades out on scroll.
-- `.hero-mark` (+ `.mark-bob`, `.mark-orbit`, `.mark-trail`, `.mark-nucleus`, `.mark-pulse`) — animated home-hero mark. Counter-clockwise electron orbit on a tilted plane, gently bobbing whole assembly, staggered trail-dot pulse, soft nucleus glow, cursor parallax (±6°), click-triggered expanding ring. `:hover` smoothly accelerates the orbit via `@property --orbit-duration`. Everything stops under `prefers-reduced-motion`.
+- `.hero-mark` (+ `.mark-bob`, `.mark-orbit`, `.mark-electron`, `.mark-trail`, `.mark-nucleus`, `.mark-pulse`) — animated home-hero mark. **Architecture (perf rebuild 2026-05-01):** static layers (nucleus + 25 trail dots) live in inline SVG; the orbiting electron and click-pulse rings are HTML overlays so their transforms run on the compositor instead of forcing per-frame SVG re-rasterization. The trail group is squashed by `scaleY(0.9397)` to match the cos(20°) projection of the tilted electron orbit. The mark uses `container-type: inline-size` so the electron + pulse scale fluidly via `cqw` units. Counter-clockwise orbit (start angle -120°), gently bobbing whole assembly, staggered trail-dot pulse, soft nucleus glow, cursor parallax (±6°), click-triggered expanding ring. `:hover` smoothly accelerates the orbit via `@property --orbit-duration`. Everything stops under `prefers-reduced-motion`.
 
 ## Local dev
 
