@@ -41,17 +41,18 @@ src/
     globals.css               # Tailwind v4 + shadcn vars + Nukleus tokens + bold-variant component CSS
     page.tsx                  # home — bold hero (video bg) + manifesto + industries + services + proof + CTA
     services/page.tsx         # /services — page-bg video + center-hero + hover-reveal service rows
-    approach/page.tsx         # /approach — two scoped video sections (hero+pillars / engagement) + manifesto bridge + flat pillars + card-chrome timeline
-    about/page.tsx            # /about — page-bg video + left-aligned center-hero + prose with red drop cap
+    approach/page.tsx         # /approach — single sticky video host wrapping hero + pillars + manifesto bridge + engagement timeline
+    about/page.tsx            # /about — page-bg video + left-aligned center-hero + prose with translucent panel
     contact/page.tsx          # /contact — page-bg video + centered hero + ContactForm
   components/
-    site-header.tsx           # mark + "NUKLEUS" wordmark (19.5px) + nav + ThemeToggle (server)
-    site-footer.tsx           # mark + nav + © line (no year)
+    site-header.tsx           # mark + "NUKLEUS" wordmark (19.5px) + desktop nav + MobileMenu + ThemeToggle (server)
+    site-footer.tsx           # mark + nav + © line (no year); z-index above sticky page-bg so cream bg always shows
     hero-video.tsx            # client — home hero video + mesh + veil layers; sets .is-ready
     hero-mark.tsx             # client — animated brand mark (HTML-overlay orbit, bob, parallax, click pulse)
-    page-bg.tsx               # client — video backdrop for non-home pages (services/approach/about/contact); supports duration/2 offset for stacked instances
+    page-bg.tsx               # client — video backdrop for services/approach/about/contact. Sticky on mobile (one video persists through scroll)
     scroll-cue.tsx            # client — animated scroll chevron, fades on scroll
     theme-toggle.tsx          # client — toggles html[data-theme="dark-red"] (light ⇄ red-tinted dark)
+    mobile-menu.tsx           # client — hamburger trigger + full-viewport drawer for nav links + theme toggle (≤720px)
     contact-form.tsx          # client — form + toast (no backend yet — TBD)
     ui/                       # shadcn primitives (do not hand-edit)
   lib/                        # utils
@@ -108,15 +109,26 @@ The bold variant brought a lot of opinionated CSS that pages reach into directly
 - `.center-hero` — center-aligned hero used by services / about / contact. Add `.left-align` modifier for the about page (eyebrow + h1 left-aligned, no lede block).
 - `.service-row` — headline-only row that floods red on hover and reveals the description (services page).
 - **Approach page family:**
-  - `.approach-page-bold` — page wrapper.
-  - `.approach-block.page-bg-host` — wraps the hero + pillars under one shared video instance.
+  - `.approach-page-bold.page-bg-host` — page wrapper IS the page-bg-host. One `<PageBg />` renders a single sticky video that persists across hero → pillars → divider → engagement on mobile.
   - `.approach-hero` — full-viewport centered hero with oversized italic-accented H1 + "Three principles" pulsing scroll cue.
-  - `.approach-pillars` + `.approach-pillar` + `.pillar-desc` — flat (non-flip) cards with always-visible numeral + title + description; oversized outlined italic Fraunces numerals fill on hover, with a red underline.
+  - `.approach-pillars` + `.approach-pillar` + `.pillar-desc` — flat cards. On desktop: always-visible numeral + title + description with hover fill. On mobile (≤720px): collapsed to numeral + title; tap focuses the card, flipping it brand-red with white text and revealing the description.
   - `.approach-divider` — manifesto-style bridge between pillars and engagement ("From first call to *first value*, in weeks, not quarters.").
-  - `.approach-engagement.page-bg-host` — engagement section with its own video instance, offset to duration/2 so the two videos don't lockstep.
+  - `.approach-engagement` — engagement section. Sits inside the same page-bg-host so the sticky video continues underneath.
   - `.approach-section-head` — centered eyebrow + h2 + lede header used by the engagement section.
-  - `.timeline` + `.timeline-step` — vertical timeline with always-visible descriptions. Within `.approach-engagement`, each step is wrapped in translucent white card chrome so it reads against the video.
-- `.about-prose` — single-column prose with red Fraunces drop cap on `p.first`.
+  - `.timeline` + `.timeline-step` — vertical timeline. Inside `.approach-engagement`, each step is a translucent white card. On mobile, collapsed to marker + title; tap flips the card red with white text and reveals the description.
+- `.about-prose` + `.about-prose-panel` — single-column prose with red Fraunces drop cap on `p.first`. The panel adds a tight translucent backdrop so the copy reads against the page-bg video.
+- `.lede-panel` — tight translucent inline-block panel applied to lede paragraphs on services and approach so they read clearly against the video without any visible card edge.
+
+### Mobile (≤720px)
+
+A single consolidated `@media (max-width: 720px)` block at the bottom of `globals.css` owns mobile polish across all pages. Key behaviors:
+
+- **Hamburger menu**: desktop nav swaps for `<MobileMenu />` — a hamburger trigger that opens a full-viewport drawer below the header. The drawer holds the same nav links + theme toggle and locks body scroll while open.
+- **Sticky page-bg video**: `.page-bg` becomes `position: sticky; top: 64px; height: calc(100vh - 64px); margin-bottom: calc(-100vh + 64px)` so a single video persists behind content as the user scrolls — no vertical stretching, no lockstep instances. The negative margin reclaims the flow space so sections still layer naturally on top.
+- **One host per page**: on mobile, every page-bg-host wraps the entire page (services, about, contact have one host already; approach was unified to a single host so the sticky video persists past the manifesto divider). The site footer carries `position: relative; z-index: 10` so cream always reads above the sticky video.
+- **Tap-to-flip cards**: `.approach-pillar` and `.approach-engagement .timeline-step` collapse to numeral + title on mobile and use `:focus`/`:focus-within` to flip brand-red with white text + reveal the description.
+- **Tightened type rhythm**: hero `min-height: 100vh` so the next section never bleeds; mark capped at 240px; clamp-shrunk h1/h2; lede + section padding tightened; full-width CTAs.
+- **Horizontal overflow**: `html, body { overflow-x: clip; max-width: 100% }` (clip, not hidden — `overflow: hidden` on an ancestor breaks descendant `position: sticky`).
 - `.scroll-cue` — bottom-of-hero chevron that fades out on scroll.
 - `.hero-mark` (+ `.mark-bob`, `.mark-orbit`, `.mark-electron`, `.mark-trail`, `.mark-nucleus`, `.mark-pulse`) — animated home-hero mark. **Architecture (perf rebuild 2026-05-01):** static layers (nucleus + 25 trail dots) live in inline SVG; the orbiting electron and click-pulse rings are HTML overlays so their transforms run on the compositor instead of forcing per-frame SVG re-rasterization. The trail group is squashed by `scaleY(0.9397)` to match the cos(20°) projection of the tilted electron orbit. The mark uses `container-type: inline-size` so the electron + pulse scale fluidly via `cqw` units. Counter-clockwise orbit (start angle -120°), gently bobbing whole assembly, staggered trail-dot pulse, soft nucleus glow, cursor parallax (±6°), click-triggered expanding ring. `:hover` smoothly accelerates the orbit via `@property --orbit-duration`. Everything stops under `prefers-reduced-motion`.
 

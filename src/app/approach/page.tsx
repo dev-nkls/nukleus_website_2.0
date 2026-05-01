@@ -50,38 +50,35 @@ const phases: { num: string; title: string; body: string }[] = [
 
 export default function ApproachPage() {
   return (
-    <div className="approach-page-bold">
-      {/* Section 1: hero + pillars share one video backdrop */}
-      <div className="approach-block page-bg-host">
-        <PageBg />
+    <div className="approach-page-bold page-bg-host">
+      <PageBg />
 
-        <section className="approach-hero">
-          <div className="container">
-            <span className="eyebrow">Approach</span>
-            <h1>
-              How we <span className="accent">work.</span>
-            </h1>
-            <p className="lede text-scrim">
-              Quality, speed, value-based pricing. We scope tightly, ship fast, and price against the outcomes you actually need, not the hours we spend.
-            </p>
-            <div className="scroll-cue">Three principles</div>
-          </div>
-        </section>
+      <section className="approach-hero">
+        <div className="container">
+          <span className="eyebrow">Approach</span>
+          <h1>
+            How we <span className="accent">work.</span>
+          </h1>
+          <p className="lede lede-panel">
+            Quality, speed, value-based pricing. We scope tightly, ship fast, and price against the outcomes you actually need, not the hours we spend.
+          </p>
+          <div className="scroll-cue">Three principles</div>
+        </div>
+      </section>
 
-        <section style={{ padding: "0 0 96px" }}>
-          <div className="container">
-            <div className="approach-pillars">
-              {pillars.map((p) => (
-                <article key={p.num} className="approach-pillar" tabIndex={0}>
-                  <div className="num">{p.num}</div>
-                  <h3>{p.title}</h3>
-                  <p className="pillar-desc">{p.body}</p>
-                </article>
-              ))}
-            </div>
+      <section style={{ padding: "0 0 96px" }}>
+        <div className="container">
+          <div className="approach-pillars">
+            {pillars.map((p) => (
+              <article key={p.num} className="approach-pillar" tabIndex={0}>
+                <div className="num">{p.num}</div>
+                <h3>{p.title}</h3>
+                <p className="pillar-desc">{p.body}</p>
+              </article>
+            ))}
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* Manifesto-style bridge */}
       <section className="approach-divider">
@@ -93,19 +90,18 @@ export default function ApproachPage() {
         </div>
       </section>
 
-      {/* Section 2: engagement / four steps — own video, offset to duration/2 */}
+      {/* Engagement / four steps */}
       <section
-        className="approach-engagement page-bg-host"
+        className="approach-engagement"
         style={{ padding: "96px 0 120px" }}
       >
-        <PageBg offset />
         <div className="container">
           <div className="approach-section-head">
             <span className="eyebrow">Engagement</span>
             <h2>
               Four steps, one <span className="accent">direction.</span>
             </h2>
-            <p className="lede text-scrim">
+            <p className="lede lede-panel">
               No discovery sprawl, no scoping theatre, no committee architecture.
             </p>
           </div>

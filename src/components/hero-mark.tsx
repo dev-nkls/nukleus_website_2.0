@@ -10,8 +10,8 @@
 //     transforms on SVG groups, which forced a CSS-pixel re-rasterization of the
 //     whole SVG each frame and was the source of orbit jank on large screens.
 //
-// Pivot math: nucleus at SVG (340, 225). With viewBox "60 -20 500 480",
-// that's (340-60)/500 = 56% across, (225-(-20))/480 = 51.04% down.
+// Pivot math: nucleus at SVG (340, 225). With viewBox "90 -20 500 480",
+// that's (340-90)/500 = 50% across, (225-(-20))/480 = 51.04% down.
 //
 // Trail-ring radius (measured from the TRAIL_DOTS array): ~175.5 SVG units
 // = 35.1% of the 500-unit-wide viewBox, so the electron sits at 35.1cqw from
@@ -104,7 +104,7 @@ export function HeroMark() {
       onClick={handleClick}
     >
       {/* Static layers — nucleus + trail dots — painted in SVG. */}
-      <svg viewBox="60 -20 500 480" aria-hidden="true">
+      <svg viewBox="90 -20 500 480" aria-hidden="true">
         <defs>
           <radialGradient id="gn_p2" cx="36%" cy="30%" r="64%">
             <stop offset="0%" stopColor="#ff5252" />

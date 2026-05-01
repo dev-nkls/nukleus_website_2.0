@@ -44,7 +44,7 @@ export default function ServicesPage() {
         <div className="container">
           <span className="eyebrow">Services</span>
           <h1>What we build.</h1>
-          <p className="lede text-scrim">
+          <p className="lede lede-panel">
             Custom AI systems engineered around your specific business problems, from production-grade agents to task automation to model-backed internal tools.
           </p>
         </div>

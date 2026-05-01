@@ -40,7 +40,9 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 - [x] Generate design system in Claude Design (handoff received 2026-04-28)
 - [x] Paste tokens into `src/app/globals.css` (full token system + bold-variant component CSS)
 - [x] Replace placeholder content on each route with real copy (six services, three pillars, five-phase engagement, four-paragraph about, contact form)
-- [ ] Push the design-system implementation to `main` (Amplify auto-deploys)
+- [x] Push the design-system implementation to `main` (Amplify auto-deploys)
+- [x] Mobile polish pass (2026-05-01): hamburger menu, sticky single-host page-bg video, tap-to-flip pillar + timeline cards, hero fits 100vh, eyebrow accent across center-hero pages, horizontal-scroll fix
+- [ ] Dark-mode polish pass (next): audit `html[data-theme="dark-red"]` on every page + new component (panels, mobile menu, tap-to-flip cards) on desktop AND mobile
 - [ ] Wire contact form backend (currently a no-op submit + toast — see "Open questions")
 - [ ] Decide on analytics (Plausible / PostHog / none)
 - [x] Connect Amplify Hosting to GitHub `main` (us-east-2 / Ohio)

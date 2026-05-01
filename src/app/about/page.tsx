@@ -20,7 +20,7 @@ export default function AboutPage() {
 
       <section style={{ paddingTop: 24 }}>
         <div className="container">
-          <div className="about-prose text-scrim">
+          <div className="about-prose about-prose-panel">
             <p className="first">
               Nukleus is a small, senior team of engineers and applied scientists who design and ship AI systems for the businesses paying for them, not for conferences, not for venture decks, not for the demo reel.
             </p>

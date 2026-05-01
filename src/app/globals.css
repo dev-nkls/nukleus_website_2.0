@@ -255,6 +255,7 @@ html[data-theme="dark-red"] body { background: var(--bg); color: var(--fg); }
 
 @layer base {
   * { border-color: var(--border); outline-color: rgb(var(--ring) / 0.5); }
+  html, body { overflow-x: clip; max-width: 100%; }
   body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); }
   html { font-family: var(--font-sans); }
 }
@@ -325,7 +326,53 @@ html[data-theme="dark-red"] .site-header { background: var(--bg); border-bottom-
 .nav a.active { position: relative; }
 .nav a.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -22px; height: 1px; background: var(--accent); }
 
-.site-footer { border-top: 1px solid var(--border); padding: 40px 0; background: var(--bg); }
+/* Mobile menu — hidden above 720px, replaces .nav-desktop below it. */
+.mobile-menu-trigger {
+  display: none;
+  width: 44px; height: 44px;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 6px;
+  background: transparent; border: 0; cursor: pointer;
+  padding: 0;
+}
+.mobile-menu-trigger .bar {
+  display: block;
+  width: 22px; height: 2px;
+  background: var(--fg);
+  transition: transform var(--duration-fast) var(--ease-standard),
+              opacity var(--duration-fast) var(--ease-standard);
+  transform-origin: center;
+}
+.mobile-menu-trigger .bar.open:first-child { transform: translateY(4px) rotate(45deg); }
+.mobile-menu-trigger .bar.open:last-child { transform: translateY(-4px) rotate(-45deg); }
+.mobile-menu-drawer {
+  position: fixed; inset: 64px 0 0 0;
+  background: var(--bg);
+  z-index: 49;
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+  display: none;
+}
+.mobile-menu-drawer.open { opacity: 1; pointer-events: auto; }
+.mobile-menu-nav {
+  display: flex; flex-direction: column; gap: 28px;
+  padding: 48px 24px;
+  font-size: 28px;
+  font-family: var(--font-heading);
+  color: var(--fg);
+}
+.mobile-menu-nav a { color: var(--fg); }
+.mobile-menu-nav a:hover { color: var(--accent); }
+.mobile-menu-toggle { margin-top: 16px; }
+@media (max-width: 720px) {
+  .nav-desktop { display: none; }
+  .mobile-menu-trigger { display: flex; }
+  .mobile-menu-drawer { display: block; }
+  .lockup .name { font-size: 16px; letter-spacing: 0.25em; }
+  .lockup img { width: 28px; height: 28px; }
+}
+
+.site-footer { position: relative; z-index: 10; border-top: 1px solid var(--border); padding: 40px 0; background: var(--bg); }
 .site-footer .row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
 .site-footer .lockup img { width: 24px; height: 24px; }
 .site-footer .lockup .name { font-size: 11px; }
@@ -556,7 +603,7 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
 .mark-bob {
   animation: mark-bob 5.5s ease-in-out infinite alternate;
   will-change: transform;
-  transform-origin: 56% 51.04%;
+  transform-origin: 50% 51.04%;
 }
 /* Orbit applies the tilt + spin around the nucleus pivot. */
 .mark-orbit {
@@ -564,7 +611,7 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
   transition: --orbit-duration 400ms ease-out;
   will-change: transform;
   transform: rotateX(20deg);
-  transform-origin: 56% 51.04%;
+  transform-origin: 50% 51.04%;
 }
 
 /* Electron: positioned at the nucleus, then translated out along -Y so
@@ -577,7 +624,7 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
    so we set the orbit's keyframe to start at -120° and run to -480°. */
 .mark-electron {
   position: absolute;
-  left: 56%;
+  left: 50%;
   top: 51.04%;
   width: 10.5cqw;
   height: 10.5cqw;
@@ -597,7 +644,7 @@ html[data-theme="dark-red"] .hero-veil { display: none; }
    scales with the mark on every breakpoint. */
 .mark-pulse {
   position: absolute;
-  left: 56%;
+  left: 50%;
   top: 51.04%;
   width: 48cqw;
   height: 48cqw;
@@ -1448,7 +1495,8 @@ html[data-theme="dark-red"] .approach-engagement .timeline-marker { background: 
 
 /* Approach page eyebrows + scroll cue use the brand red instead of muted gray. */
 .approach-hero .eyebrow,
-.approach-section-head .eyebrow {
+.approach-section-head .eyebrow,
+.center-hero .eyebrow {
   color: var(--accent);
 }
 .approach-hero .scroll-cue { color: var(--accent); }
@@ -1472,7 +1520,7 @@ html[data-theme="dark-red"] .approach-engagement .timeline-marker { background: 
      radial gradient fades the entire panel (background + backdrop-filter
      effect together) to fully transparent at every edge — no rectangle,
      no border, just a soft cloud. */
-  background: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(14px) saturate(1.05) brightness(1.06);
   -webkit-backdrop-filter: blur(14px) saturate(1.05) brightness(1.06);
   -webkit-mask-image: radial-gradient(
@@ -1530,33 +1578,21 @@ html[data-theme="dark-red"] .approach-engagement .timeline-marker { background: 
    ============================================================ */
 
 .about-prose { max-width: 720px; }
-.about-prose.text-scrim {
-  max-width: 1120px;
-  padding: 110px 240px 110px 200px;
-  margin-left: 0;
-  margin-right: auto;
-  -webkit-mask-image: radial-gradient(
-    ellipse 70% 65% at center,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.85) 25%,
-    rgba(0, 0, 0, 0.45) 55%,
-    rgba(0, 0, 0, 0.15) 78%,
-    transparent 100%
-  );
-  mask-image: radial-gradient(
-    ellipse 70% 65% at center,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.85) 25%,
-    rgba(0, 0, 0, 0.45) 55%,
-    rgba(0, 0, 0, 0.15) 78%,
-    transparent 100%
-  );
-}
-@media (max-width: 720px) {
-  .about-prose.text-scrim { padding: 28px 24px; max-width: none; }
-}
-.about-prose p { font-size: 18px; line-height: 1.7; color: var(--fg); margin-bottom: 22px; text-wrap: pretty; max-width: 720px; }
+.about-prose p { font-size: 18px; line-height: 1.7; color: var(--fg); margin-bottom: 22px; text-wrap: pretty; }
 .about-prose p:last-child { margin-bottom: 0; }
+.about-prose-panel,
+.lede-panel {
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(5px) saturate(1.02) brightness(1.01);
+  -webkit-backdrop-filter: blur(5px) saturate(1.02) brightness(1.01);
+  border-radius: 4px;
+}
+.about-prose-panel { padding: 36px 44px; max-width: 808px; }
+.lede-panel { padding: 12px 18px; display: inline-block; }
+@media (max-width: 720px) {
+  .about-prose-panel { padding: 24px 24px; max-width: none; }
+  .lede-panel { padding: 18px 20px; display: block; }
+}
 .about-prose p.first::first-letter {
   font-family: var(--font-heading);
   font-size: 56px;
@@ -1621,4 +1657,169 @@ html[data-theme="dark-red"] .panel {
 .toast.show {
   opacity: 1; transform: translateX(-50%) translateY(0);
   pointer-events: auto;
+}
+
+/* ============================================================
+   Mobile polish — consolidated mobile-only refinements that
+   keep marketing pages legible and tightly composed at phone
+   widths. Targets ≤720px; layouts drop to single column above
+   in their own breakpoints.
+   ============================================================ */
+@media (max-width: 720px) {
+  /* Home hero — fill the viewport so the next section (red manifesto)
+     never bleeds into the first paint. Cap the mark so headline + CTAs
+     still fit comfortably. */
+  .hero.bold { min-height: 100vh; padding: 32px 0 48px; }
+  .hero.bold .grid { gap: 18px; }
+  .hero .mark-col { width: 100%; }
+  .hero .mark-col .hero-mark { max-width: 240px; width: 100%; }
+  .hero h1 { font-size: clamp(36px, 9vw, 48px); }
+  .hero p.lede { font-size: 17px; margin-top: 18px; }
+  .hero .cta { margin-top: 28px; gap: 10px; flex-direction: column; align-items: stretch; }
+  .hero .cta .btn { width: 100%; justify-content: center; }
+  /* Hide the scroll cue on mobile — it pushes the hero off-screen
+     and adds visual noise for a small payoff. */
+  .hero .scroll-cue,
+  .approach-hero .scroll-cue { display: none; }
+
+  /* Center-hero shared (services / about / contact) — tighter
+     vertical rhythm so eyebrow + h1 + lede land in one view. */
+  .center-hero { padding: 56px 0 32px; }
+  .center-hero h1 { font-size: clamp(36px, 9vw, 48px); }
+  .center-hero .lede { font-size: 16px; margin-top: 16px; }
+
+  /* Approach hero — drop the forced full-viewport so content
+     reads naturally without forced empty space. */
+  .approach-hero { min-height: auto; padding: 64px 0 48px; }
+  .approach-hero h1 { font-size: clamp(40px, 11vw, 56px); }
+
+  /* Approach pillars — drop the desktop min-height so collapsed cards
+     hug their content (numeral + title), and shrink the oversized
+     italic numerals so they hint at hierarchy without dominating. */
+  .approach-pillar { min-height: 0; padding: 20px 22px 22px; gap: 8px; }
+  .approach-pillar .num { font-size: 64px; }
+  .approach-pillar h3 { font-size: 22px; }
+
+  /* Engagement section — match the hero's lighter video treatment
+     (no extra dark tint) so both halves of the page feel consistent. */
+  .approach-engagement .page-bg video {
+    filter: grayscale(1) brightness(1.6) contrast(0.74);
+  }
+  .approach-engagement .page-bg video.is-ready { opacity: 0.55; }
+
+  /* Approach divider — sit flush against neighbours so there's no
+     cream cushion between the dark divider and the pillar/engagement
+     bands. */
+  .approach-page-bold .approach-pillars { margin-bottom: 0; }
+  .approach-page-bold > section:has(.approach-pillars) { padding-bottom: 0 !important; }
+  .approach-page-bold > .approach-engagement { padding-top: 48px !important; }
+  .approach-page-bold > .approach-divider { padding: 56px 0; }
+
+  /* Approach engagement timeline — tighten card padding. */
+  .approach-engagement .timeline-step { padding: 18px 18px 20px; }
+  .approach-section-head h2 { font-size: clamp(34px, 8vw, 44px); }
+
+  /* Manifesto / divider blockquotes — keep them readable but
+     not overbearing. */
+  .manifesto blockquote,
+  .approach-divider blockquote { font-size: clamp(26px, 6.5vw, 34px); }
+
+  /* Proof / pricing band — shrink the giant " backdrop and copy. */
+  .proof.bold blockquote { font-size: clamp(22px, 6vw, 30px); }
+  .proof.bold::before { font-size: 140px; top: 12px; }
+
+  /* CTA band */
+  .cta-band.bold h2 { font-size: clamp(34px, 9vw, 46px); }
+  .cta-band.bold { padding: 72px 0; }
+
+  /* About panel — tighter padding so the panel hugs the prose. */
+  .about-prose-panel { padding: 22px 20px; }
+
+  /* Lede panel — smaller, hugs the lede line. */
+  .lede-panel { padding: 10px 14px; }
+
+  /* Industries marquee — slow down a touch so it reads on small
+     screens. */
+  .industries-track { animation-duration: 30s; }
+
+  /* Sections — slightly tighter overall. */
+  section { padding: 48px 0; }
+
+  /* Page-bg video — sticky on mobile so the video stays anchored in
+     the viewport while content scrolls over it (no vertical stretch
+     across long pages, and the backdrop persists past the hero).
+     Negative margin reclaims the flow space so content sections layer
+     on top instead of starting below. Sticky stays scoped to the host,
+     so multi-host pages (e.g. /approach) hand off cleanly between
+     instances. */
+  .page-bg {
+    position: sticky;
+    inset: auto;
+    top: 64px;
+    height: calc(100vh - 64px);
+    margin-bottom: calc(-100vh + 64px);
+  }
+
+  /* Services rows — body copy reads black against the page-bg veil. */
+  .service-row p { color: var(--fg); }
+  .service-row h3 { font-size: 28px; }
+
+  /* Approach pillars — tap-to-reveal. Description hidden by default;
+     on focus the card flips to brand red with white text. */
+  .approach-pillar { cursor: pointer; transition: background var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out); }
+  .approach-pillar .pillar-desc { max-height: 0; opacity: 0; margin-top: 0; }
+  .approach-pillar:focus,
+  .approach-pillar:focus-visible,
+  .approach-pillar:focus-within {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    outline: none;
+  }
+  .approach-pillar:focus h3,
+  .approach-pillar:focus-visible h3,
+  .approach-pillar:focus-within h3,
+  .approach-pillar:focus .pillar-desc,
+  .approach-pillar:focus-visible .pillar-desc,
+  .approach-pillar:focus-within .pillar-desc { color: #fff; }
+  .approach-pillar:focus .num,
+  .approach-pillar:focus-visible .num,
+  .approach-pillar:focus-within .num {
+    -webkit-text-stroke-color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.18);
+  }
+  .approach-pillar:focus .pillar-desc,
+  .approach-pillar:focus-visible .pillar-desc,
+  .approach-pillar:focus-within .pillar-desc { max-height: 320px; opacity: 1; margin-top: 12px; }
+
+  /* Approach engagement timeline — tap-to-expand. Card collapses to
+     marker + title; tap reveals description and turns the card red. */
+  .approach-engagement .timeline-step {
+    cursor: pointer;
+    transition: background var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
+    padding: 18px 18px;
+  }
+  .approach-engagement .timeline-body p {
+    max-height: 0; opacity: 0; margin: 0;
+    overflow: hidden;
+    transition: max-height var(--duration-base) var(--ease-out), opacity var(--duration-base) var(--ease-out), margin var(--duration-base) var(--ease-out);
+  }
+  .approach-engagement .timeline-step:focus,
+  .approach-engagement .timeline-step:focus-visible,
+  .approach-engagement .timeline-step:focus-within {
+    background: var(--accent);
+    border-color: var(--accent);
+    outline: none;
+  }
+  .approach-engagement .timeline-step:focus .timeline-body h3,
+  .approach-engagement .timeline-step:focus-visible .timeline-body h3,
+  .approach-engagement .timeline-step:focus-within .timeline-body h3,
+  .approach-engagement .timeline-step:focus .timeline-body p,
+  .approach-engagement .timeline-step:focus-visible .timeline-body p,
+  .approach-engagement .timeline-step:focus-within .timeline-body p { color: #fff; }
+  .approach-engagement .timeline-step:focus .timeline-body p,
+  .approach-engagement .timeline-step:focus-visible .timeline-body p,
+  .approach-engagement .timeline-step:focus-within .timeline-body p {
+    max-height: 320px; opacity: 1; margin-top: 8px;
+  }
 }

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileMenu } from "@/components/mobile-menu";
 
 const navLinks = [
   { href: "/services", label: "Services" },
@@ -23,7 +24,7 @@ export function SiteHeader() {
           />
           <span className="name">Nukleus</span>
         </Link>
-        <nav className="nav">
+        <nav className="nav nav-desktop">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href}>
               {link.label}
@@ -31,6 +32,7 @@ export function SiteHeader() {
           ))}
           <ThemeToggle />
         </nav>
+        <MobileMenu links={navLinks} />
       </div>
     </header>
   );
