@@ -1307,6 +1307,9 @@ html[data-theme="dark-red"] .approach-section-head h2,
 html[data-theme="dark-red"] .approach-section-head .eyebrow,
 html[data-theme="dark-red"] .approach-hero h1,
 html[data-theme="dark-red"] .approach-hero .eyebrow { text-shadow: none; }
+/* Engagement / pillar section heads invert to white in dark mode (the
+   base rule paints them #000 to read on the cream-veiled video). */
+html[data-theme="dark-red"] .approach-section-head h2 { color: #fff; }
 
 /* Flat (non-flip) pillar — always-visible numeral + title + body. */
 .approach-pillars {
@@ -1318,7 +1321,8 @@ html[data-theme="dark-red"] .approach-hero .eyebrow { text-shadow: none; }
   border-bottom: 1px solid rgba(0, 0, 0, 0.10);
 }
 html[data-theme="dark-red"] .approach-pillars {
-  background: var(--border); border-color: var(--border);
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.10);
 }
 .approach-pillar {
   position: relative;
@@ -1334,7 +1338,11 @@ html[data-theme="dark-red"] .approach-pillars {
   cursor: default;
   outline: none;
 }
-html[data-theme="dark-red"] .approach-pillar { background: rgba(20, 8, 8, 0.55); }
+html[data-theme="dark-red"] .approach-pillar {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+}
 .approach-pillar::after {
   content: "";
   position: absolute; left: 0; right: 0; bottom: 0;
@@ -1350,7 +1358,7 @@ html[data-theme="dark-red"] .approach-pillar { background: rgba(20, 8, 8, 0.55);
 }
 html[data-theme="dark-red"] .approach-pillar:hover,
 html[data-theme="dark-red"] .approach-pillar:focus-visible {
-  background: rgba(20, 8, 8, 0.78);
+  background: rgba(0, 0, 0, 0.72);
 }
 .approach-pillar:hover::after,
 .approach-pillar:focus-visible::after { transform: scaleX(1); }
@@ -1500,8 +1508,11 @@ html[data-theme="dark-red"] .timeline-marker { background: rgba(20, 8, 8, 0.85);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 8px 24px -16px rgba(20, 8, 8, 0.18);
 }
 html[data-theme="dark-red"] .approach-engagement .timeline-step {
-  background: rgba(20, 8, 8, 0.55);
-  border-color: var(--border);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: none;
 }
 .approach-engagement .timeline-step:last-child { margin-bottom: 0; }
 .approach-engagement .timeline-marker { background: #fff; }
@@ -1639,6 +1650,15 @@ html[data-theme="dark-red"] .approach-engagement .timeline-marker { background: 
   backdrop-filter: blur(5px) saturate(1.02) brightness(1.01);
   -webkit-backdrop-filter: blur(5px) saturate(1.02) brightness(1.01);
   border-radius: 4px;
+}
+/* Dark mode: flip the translucent wash from white-on-black to black-on-dark
+   so lede + about prose panels read as glassy black instead of milky white. */
+html[data-theme="dark-red"] .about-prose-panel,
+html[data-theme="dark-red"] .lede-panel {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .about-prose-panel { padding: 36px 44px; max-width: 808px; }
 .lede-panel { padding: 12px 18px; display: inline-block; }
@@ -1893,10 +1913,33 @@ html[data-theme="dark-red"] .contact-intro {
   .service-row p { color: var(--fg); }
   .service-row h3 { font-size: 28px; }
 
-  /* Approach pillars — tap-to-reveal. Description hidden by default;
-     on focus the card flips to brand red with white text. */
-  .approach-pillar { cursor: pointer; transition: background var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out); }
-  .approach-pillar .pillar-desc { max-height: 0; opacity: 0; margin-top: 0; }
+  /* Approach pillars — tap-to-reveal. Numeral + title sit on one row to
+     keep cards space-efficient on small screens; the description spans
+     the full row when expanded. */
+  .approach-pillar {
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    column-gap: 14px;
+    row-gap: 0;
+    padding: 18px 18px;
+    min-height: 0;
+    transition: background var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
+  }
+  .approach-pillar .num {
+    font-size: 48px;
+    line-height: 1;
+    margin: 0;
+  }
+  .approach-pillar h3 {
+    font-size: clamp(20px, 5.4vw, 26px);
+    margin: 0;
+  }
+  .approach-pillar .pillar-desc {
+    grid-column: 1 / -1;
+    max-height: 0; opacity: 0; margin-top: 0;
+  }
   .approach-pillar:focus,
   .approach-pillar:focus-visible,
   .approach-pillar:focus-within {
@@ -1904,6 +1947,18 @@ html[data-theme="dark-red"] .contact-intro {
     border-color: var(--accent);
     color: #fff;
     outline: none;
+  }
+  /* Dark mode: the focused/tapped card stays glassy black instead of
+     flooding red — reads better against the dark page-bg and matches
+     the rest of the dark-mode chrome. */
+  html[data-theme="dark-red"] .approach-pillar:focus,
+  html[data-theme="dark-red"] .approach-pillar:focus-visible,
+  html[data-theme="dark-red"] .approach-pillar:focus-within {
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(14px) saturate(1.05);
+    -webkit-backdrop-filter: blur(14px) saturate(1.05);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #fff;
   }
   .approach-pillar:focus h3,
   .approach-pillar:focus-visible h3,
@@ -1916,6 +1971,13 @@ html[data-theme="dark-red"] .contact-intro {
   .approach-pillar:focus-within .num {
     -webkit-text-stroke-color: rgba(255, 255, 255, 0.9);
     color: rgba(255, 255, 255, 0.18);
+  }
+  /* Dark mode keeps the red-stroke numeral so the brand colour still reads. */
+  html[data-theme="dark-red"] .approach-pillar:focus .num,
+  html[data-theme="dark-red"] .approach-pillar:focus-visible .num,
+  html[data-theme="dark-red"] .approach-pillar:focus-within .num {
+    -webkit-text-stroke-color: var(--accent);
+    color: color-mix(in oklab, var(--accent) 18%, transparent);
   }
   .approach-pillar:focus .pillar-desc,
   .approach-pillar:focus-visible .pillar-desc,
@@ -1939,6 +2001,15 @@ html[data-theme="dark-red"] .contact-intro {
     background: var(--accent);
     border-color: var(--accent);
     outline: none;
+  }
+  /* Dark mode mirrors the pillar treatment — glassy black on focus. */
+  html[data-theme="dark-red"] .approach-engagement .timeline-step:focus,
+  html[data-theme="dark-red"] .approach-engagement .timeline-step:focus-visible,
+  html[data-theme="dark-red"] .approach-engagement .timeline-step:focus-within {
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(14px) saturate(1.05);
+    -webkit-backdrop-filter: blur(14px) saturate(1.05);
+    border-color: rgba(255, 255, 255, 0.12);
   }
   .approach-engagement .timeline-step:focus .timeline-body h3,
   .approach-engagement .timeline-step:focus-visible .timeline-body h3,

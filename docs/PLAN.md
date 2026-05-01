@@ -50,6 +50,7 @@ A modern, impressive marketing site for Nukleus at **nukleus.ai**. Built with Cl
 - [x] Wire contact form via mailto (2026-05-01): submit opens user's email client prefilled with all fields. Stopgap until SMTP / transactional service lands.
 - [x] Header / footer mark dark-mode + scale-up (2026-05-01): `<HeaderMark />` inlines the SVG so dark-red mode shows red nucleus + electron + white orbit; header lockup grew 50% on desktop / 33% on mobile.
 - [x] Contact page mobile overflow (2026-05-01): grid columns now use `minmax(0, 1fr)`, inputs forced to `width: 100%; min-width: 0` so two-column field-rows fit narrow phones; field-rows collapse to 1-col below 420px.
+- [x] Approach page dark-mode pass (2026-05-01): pillar cards + engagement timeline-steps now render glassy black (`rgba(0,0,0,0.55)` + 14px blur, faint white border) at rest AND on tap-focus instead of maroon/red. Engagement section h2 inverts to white. Pillar mobile layout collapsed numeral + title onto a single grid row (`auto 1fr`) for space efficiency. `.about-prose-panel` / `.lede-panel` flipped from white-tinted to black-tinted in dark mode so manifesto / lede copy no longer sits behind a milky-white box.
 - [ ] Dark-mode polish pass (next): audit `html[data-theme="dark-red"]` on every page + new component (panels, mobile menu, tap-to-flip cards) on desktop AND mobile
 - [ ] Contact form backend upgrade: replace `mailto:` with Resend / SES + Server Action (env: `RESEND_API_KEY` etc.) so submission works without leaving the page
 - [ ] Decide on analytics (Plausible / PostHog / none)
