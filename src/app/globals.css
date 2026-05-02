@@ -727,10 +727,12 @@ html[data-theme="dark-red"] .mark-trail circle { fill: #d6d6da; }
   100% { transform: translate(-50%, -50%) scale(1.05); opacity: 0;    border-width: 0.5px; }
 }
 
-.hero.bold .mark-col:hover .mark-electron {
+/* Driven by JS-toggled .is-active (not :hover) so iOS sticky :hover after
+   a tap can't pin the bob/electron in their accelerated state. */
+.hero-mark.is-active .mark-electron {
   filter: drop-shadow(0 0 12px rgba(212, 13, 13, 0.55));
 }
-.hero.bold .mark-col:hover .mark-bob { animation-duration: 3s; }
+.hero-mark.is-active .mark-bob { animation-duration: 3s; }
 
 @media (prefers-reduced-motion: reduce) {
   .mark-bob,

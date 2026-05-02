@@ -34,7 +34,13 @@
 //
 // Keep this in sync with the source SVG if the brand mark changes.
 
-import { CSSProperties, MouseEvent, useEffect, useRef, useState } from "react";
+import {
+  CSSProperties,
+  PointerEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 type TrailDot = { cx: number; cy: number; r: number; opacity: number };
 
@@ -80,6 +86,11 @@ const SPEED_TAU_S = 0.25;
 export function HeroMark() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const orbitRef = useRef<HTMLDivElement | null>(null);
+  // Tracks whether the orbit should be in "fast" mode. Set on pointer
+  // hover (mouse) or pointer-down (touch); always cleared on leave / up
+  // / cancel so iOS sticky :hover can't pin the orbit at 300°/s after a
+  // tap. Driven by JS instead of CSS :hover for the same reason.
+  const fastRef = useRef(false);
   const [pulses, setPulses] = useState<number[]>([]);
 
   // Drive the orbit rotation in JS so speed changes don't snap the angle.
@@ -103,13 +114,11 @@ export function HeroMark() {
       const dt = Math.min((t - lastT) / 1000, 0.1);
       lastT = t;
 
-      const target =
-        wrapperRef.current?.matches(":hover") ? HOVER_SPEED_DPS : BASE_SPEED_DPS;
+      const target = fastRef.current ? HOVER_SPEED_DPS : BASE_SPEED_DPS;
       const alpha = 1 - Math.exp(-dt / SPEED_TAU_S);
       speed += (target - speed) * alpha;
 
       angle -= speed * dt;
-      // Keep the angle bounded so it doesn't grow unboundedly over time.
       if (angle < -3600) angle += 360;
 
       orbit.style.transform = `rotateX(20deg) rotate(${angle.toFixed(3)}deg)`;
@@ -119,7 +128,19 @@ export function HeroMark() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
+  function clearTilt() {
+    const wrap = wrapperRef.current;
+    if (!wrap) return;
+    wrap.style.removeProperty("--tilt-x");
+    wrap.style.removeProperty("--tilt-y");
+  }
+
+  function handlePointerMove(e: PointerEvent<HTMLDivElement>) {
+    // Parallax tilt only for actual mouse pointers — on touch, the
+    // synthetic mouse coalescence + lack of a reliable leave event made
+    // the wrapper stay rotated in 3D after a tap, foreshortening the
+    // electron through the perspective: 1000px on .hero-mark.
+    if (e.pointerType !== "mouse") return;
     const wrap = wrapperRef.current;
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
@@ -129,11 +150,31 @@ export function HeroMark() {
     wrap.style.setProperty("--tilt-y", `${(nx * TILT_MAX_DEG * 2).toFixed(2)}deg`);
   }
 
-  function handleMouseLeave() {
-    const wrap = wrapperRef.current;
-    if (!wrap) return;
-    wrap.style.removeProperty("--tilt-x");
-    wrap.style.removeProperty("--tilt-y");
+  function setActive(active: boolean) {
+    fastRef.current = active;
+    wrapperRef.current?.classList.toggle("is-active", active);
+  }
+
+  function handlePointerEnter(e: PointerEvent<HTMLDivElement>) {
+    if (e.pointerType === "mouse") setActive(true);
+  }
+
+  function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
+    // On touch, a tap accelerates the orbit + lights the electron;
+    // pointerup/cancel clears it so it doesn't stick after lift.
+    if (e.pointerType !== "mouse") setActive(true);
+  }
+
+  function handlePointerLeave() {
+    setActive(false);
+    clearTilt();
+  }
+
+  function handlePointerUp(e: PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== "mouse") {
+      setActive(false);
+      clearTilt();
+    }
   }
 
   function handleClick() {
@@ -150,8 +191,12 @@ export function HeroMark() {
       role="img"
       aria-label="Nukleus mark"
       className="hero-mark"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onPointerEnter={handlePointerEnter}
+      onPointerMove={handlePointerMove}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerLeave}
+      onPointerCancel={handlePointerLeave}
       onClick={handleClick}
     >
       {/* Static layers — nucleus + trail dots — painted in SVG. */}
